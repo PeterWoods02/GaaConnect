@@ -17,7 +17,7 @@ const matchSchema = new mongoose.Schema({
     score: {
         type: String,
         required: true, // The score of the match, e.g., "1-10 x 1-12" see how to manage which team goes first
-    },
+    },                  // maybe split into sub with points and goals
     opposition: {
         type: String,
         required: true, // The opposition team/club
@@ -25,7 +25,7 @@ const matchSchema = new mongoose.Schema({
     statistics: {
         type: mongoose.Schema.Types.ObjectId,  // ref to the Statistics model
         ref: 'Statistics',  
-        required: true,  
+        required: false,  
     },
     createdAt: {
         type: Date,

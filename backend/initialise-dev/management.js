@@ -1,3 +1,4 @@
+//add emails
 const staff = [
     {
       name: 'John Doe',

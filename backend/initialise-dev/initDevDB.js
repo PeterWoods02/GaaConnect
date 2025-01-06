@@ -7,6 +7,10 @@ import teams from '../initialise-dev/team.js';
 import Team from '../api/team/teamModel.js';
 import statistics from '../initialise-dev/statistics.js'; 
 import Statistics from '../api/statistics/statisticsModel.js';
+import matches from '../initialise-dev/match.js'; 
+import Match from '../api/match/matchModel.js';
+import players from '../initialise-dev/player.js'; 
+import Player from '../api/player/playerModel.js';
 
 async function main() {
     if (process.env.NODE_ENV !== 'development') {
@@ -43,9 +47,17 @@ async function main() {
         await Team.create(teams);
         console.log(`${teams.length} Teams loaded`);
 
-        // Insert data into the Team collection
+        // Insert data into the Statistics collection
         await Statistics.create(statistics);
         console.log(`${statistics.length} statistics loaded`);
+
+        // Insert data into the Match collection
+        await Match.create(matches);
+        console.log(`${matches.length} matches loaded`);
+
+        // Insert data into the Player collection
+        await Player.create(players);
+        console.log(`${players.length} players loaded`);
 
     } catch (error) {
         console.error('Error initializing database:', error);
