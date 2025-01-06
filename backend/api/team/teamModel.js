@@ -22,11 +22,7 @@ const teamSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Management',  // ref management model
       required: true  // team must have one from management
-    }],
-    createdAt: {
-      type: Date,
-      default: Date.now  // Automatically set the creation date
-    }
+    }]
   });
   
   

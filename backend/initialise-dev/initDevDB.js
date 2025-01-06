@@ -5,6 +5,8 @@ import Management from '../api/management/managementModel.js';
 import staff from '../initialise-dev/management.js';  
 import teams from '../initialise-dev/team.js'; 
 import Team from '../api/team/teamModel.js';
+import statistics from '../initialise-dev/statistics.js'; 
+import Statistics from '../api/statistics/statisticsModel.js';
 
 async function main() {
     if (process.env.NODE_ENV !== 'development') {
@@ -19,6 +21,7 @@ async function main() {
         // Drop the existing collections if needed
         await Management.collection.drop().catch(err => console.log('User collection not found'));
         await Team.collection.drop().catch(err => console.log('Team collection not found'));
+        await Statistics.collection.drop().catch(err => console.log('Statistics collection not found'));
 
         // Insert data into the Management collection
         const managementData = await Management.create(staff);
@@ -39,6 +42,10 @@ async function main() {
         // Insert data into the Team collection
         await Team.create(teams);
         console.log(`${teams.length} Teams loaded`);
+
+        // Insert data into the Team collection
+        await Statistics.create(statistics);
+        console.log(`${statistics.length} statistics loaded`);
 
     } catch (error) {
         console.error('Error initializing database:', error);
