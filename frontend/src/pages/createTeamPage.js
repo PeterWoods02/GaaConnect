@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { getPlayers } from '../api/playersApi.js'; 
 import ListPlayersForTeam from '../components/listPlayersForTeam/index.js';
+import Pitch from '../components/pitch/index.js'; 
 
 const CreateTeam = () => {
   const [players, setPlayers] = useState([]);
@@ -19,8 +20,9 @@ const CreateTeam = () => {
   }, []);
 
   return (
-    <div className="create-team">
+    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px' }}>
       <ListPlayersForTeam players={players} />
+      <Pitch /> 
     </div>
   );
 };

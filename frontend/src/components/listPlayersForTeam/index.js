@@ -1,12 +1,19 @@
 import React from 'react';
+import theme  from '../../assets/themes/theme.js';
 
 const ListPlayersForTeam = ({ players }) => {
+
+
   return (
-    <div className="player-list">
+    <div style={theme.customStyles.listPlayersForTeam.playerList}>
       <h3>Available Players</h3>
       <ul>
         {players.map((player, index) => (
-          <li key={index} className="player-item" draggable>
+          <li
+            key={index}
+            style={theme.customStyles.listPlayersForTeam.playerItem}
+            draggable
+          >
             {player.name}
           </li>
         ))}
