@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Home from './pages/homePage/index.js';
-import Players from './pages/playerPage/index.js';
+import Home from './pages/homePage.js';
+import CreateTeam from './pages/createTeamPage.js';
 import SiteHeader from './components/siteHeader/index.js';
 
 const App = () => {
@@ -11,7 +11,8 @@ const App = () => {
         <SiteHeader /> 
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/players" element={<Players />} />
+          <Route path="/createTeam" element={<CreateTeam />} />
+          
         </Routes>
       </div>
     </Router>
