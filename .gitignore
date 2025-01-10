@@ -67,3 +67,7 @@ Thumbs.db
 # Backup files
 *~
 
+# Ignore package files
+package.json
+package-lock.json
+
