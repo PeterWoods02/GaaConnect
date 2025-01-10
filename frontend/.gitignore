@@ -19,6 +19,19 @@
 .env.test.local
 .env.production.local
 
+# npm log files
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# VS Code settings
+.vscode/
+
+# JetBrains IDEs
+.idea/
+
+# Mac system files
+*.swp
+
+# Windows system files
+Thumbs.db

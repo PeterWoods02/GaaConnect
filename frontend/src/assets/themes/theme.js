@@ -10,7 +10,6 @@ const theme = createTheme({
       },
     },
   },
-  // Custom styling for ListPlayersForTeam
   customStyles: {
     listPlayersForTeam: {
       playerList: {
@@ -29,6 +28,19 @@ const theme = createTheme({
         '&:active': {
           cursor: 'grabbing',
         },
+      },
+    },
+    pitch: {
+      dropZone: {
+        position: 'absolute',
+        width: '100px',
+        height: '100px',
+        borderRadius: '50%',
+        border: '1px dashed #000',
+        textAlign: 'center',
+        lineHeight: '100px',
+        color: '#333',
+        fontWeight: 'bold',
       },
     },
   },

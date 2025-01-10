@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { getPlayers } from '../api/playersApi.js'; 
 import ListPlayersForTeam from '../components/listPlayersForTeam/index.js';
 import Pitch from '../components/pitch/index.js'; 
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const CreateTeam = () => {
   const [players, setPlayers] = useState([]);
@@ -20,10 +22,12 @@ const CreateTeam = () => {
   }, []);
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px' }}>
-      <ListPlayersForTeam players={players} />
-      <Pitch /> 
-    </div>
+    <DndProvider backend={HTML5Backend}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px' }}>
+        <ListPlayersForTeam players={players} />
+        <Pitch /> 
+      </div>
+    </DndProvider>
   );
 };
 
