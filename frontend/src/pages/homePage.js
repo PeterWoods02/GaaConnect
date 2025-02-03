@@ -1,34 +1,30 @@
-import React from 'react';
+import React from "react";
+import { Button, Grid, Container, Typography } from "@mui/material";
+import DashboardHeader from '../components/dashboardHeader';
+import FixturesList from '../components/fixturesList';
+import SquadOverview from '../components/squadOverview';
+import NotificationsPanel from '../components/notificationsPanel';
 
 const Home = () => {
   return (
-    <div style={styles.container}>
-      <h1 style={styles.heading}>Welcome to GAA Connect</h1>
-      <p style={styles.text}>
-        This is a demo application 
-      </p>
-    </div>
-  );
-};
+    <>
+      <DashboardHeader />
+      <Container maxWidth="lg" sx={{ my: 4 }}>
+        <Grid container spacing={4}>
+          {/* Left Column */}
+          <Grid item xs={12} md={8}>
+            <FixturesList />
+          </Grid>
 
-const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    height: '100vh',
-    padding: '20px',
-    textAlign: 'center',
-  },
-  heading: {
-    fontSize: '2.5rem',
-    margin: '20px 0',
-  },
-  text: {
-    fontSize: '1.2rem',
-    maxWidth: '600px',
-  },
+          {/* Right Column */}
+          <Grid item xs={12} md={4}>
+            <SquadOverview />
+            <NotificationsPanel sx={{ mt: 4 }} />
+          </Grid>
+        </Grid>
+      </Container>
+    </>
+  );
 };
 
 export default Home;
