@@ -12,11 +12,12 @@ const AddTeam = () => {
 
   const handleCreateTeam = async (teamData) => {
     try {
+      console.log('Sending team data:', teamData);
       await createTeam(teamData);
       setSnackbarMessage('Team created successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
-      setTimeout(() => navigate(`/team/${teamData.name}`), 2000);
+      setTimeout(() => navigate(`/`), 500); //maybe navigate to page showing team options
     } catch (error) {
       setSnackbarMessage('Error creating team!');
       setSnackbarSeverity('error');

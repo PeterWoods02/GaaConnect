@@ -5,7 +5,7 @@ import ManagerSelect from '../managersList';
 const TeamForm = ({ onSubmit }) => {
   const [teamData, setTeamData] = useState({
     name: '',
-    ageGroup: '',
+    age_group: '',  // renamed here
     division: '',
     year: '',
     managementTeam: [],
@@ -48,9 +48,9 @@ const TeamForm = ({ onSubmit }) => {
         <Grid item xs={6}>
           <TextField
             label="Age Group"
-            name="ageGroup"
+            name="age_group"  // renamed here
             fullWidth
-            value={teamData.ageGroup}
+            value={teamData.age_group}  // renamed here
             onChange={handleInputChange}
             required
           />
