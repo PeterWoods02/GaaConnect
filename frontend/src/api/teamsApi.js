@@ -1,10 +1,12 @@
 const BASE_URL = 'http://localhost:8080/api/team'; 
 
-// Generic error handler function
-const handleError = (action, error) => {
-  console.error(`Error ${action}:`, error);
-  throw new Error(`Error ${action}`);
+// error handler function
+const handleError = (action, error, response = null) => {
+  const errorMessage = response ? `${response.statusText}: ${response.status}` : error.message;
+  console.error(`Error ${action}: ${errorMessage}`);
+  throw new Error(`Error ${action}: ${errorMessage}`);
 };
+
 
 // fetch all teams
 export const getTeams = async () => {
@@ -38,6 +40,7 @@ export const getTeamById = async (id) => {
 // create a new team
 export const createTeam = async (teamData) => {
   try {
+    console.log('Sending team data:', teamData);  
     const response = await fetch(BASE_URL, {
       method: 'POST',
       headers: {
@@ -47,7 +50,8 @@ export const createTeam = async (teamData) => {
     });
 
     if (!response.ok) {
-      handleError('creating team', 'Failed to create team');
+      const errorResponse = await response.json();  
+      handleError('creating team', 'Failed to create team', errorResponse);
     }
 
     const data = await response.json();
@@ -56,6 +60,7 @@ export const createTeam = async (teamData) => {
     handleError('creating team', error);
   }
 };
+
 
 // update an existing team by ID
 export const updateTeam = async (id, teamData) => {

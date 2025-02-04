@@ -21,7 +21,7 @@ const teamSchema = new mongoose.Schema({
     managementTeam: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Management',  // ref management model
-      required: true  // team must have one from management
+      required: false  // team must have one from management change later
     }]
   });
   

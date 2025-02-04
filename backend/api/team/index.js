@@ -36,12 +36,12 @@ router.post('/', async (req, res) => {
   try {
     const { name, age_group, division, year, managementTeam } = req.body;
 
-    // validation
-    if (!name || !age_group || !division || !year || !managementTeam || managementTeam.length === 0) {
+    
+    if (!name || !age_group || !division || !year || managementTeam === undefined) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // check for same team name
+    // Check if a team with the same name exists
     const existingTeam = await Team.findOne({ name });
     if (existingTeam) {
       return res.status(400).json({ message: 'A team with this name already exists' });
@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
       age_group,
       division,
       year,
-      managementTeam,
+      managementTeam: managementTeam || [], 
     });
 
     await newTeam.save();
@@ -65,6 +65,7 @@ router.post('/', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Update a team
 router.put('/:id', async (req, res) => {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TextField, Button, Grid } from '@mui/material';
+import ManagerSelect from '../managersList'; 
 
 const TeamForm = ({ onSubmit }) => {
   const [teamData, setTeamData] = useState({
@@ -7,6 +8,7 @@ const TeamForm = ({ onSubmit }) => {
     ageGroup: '',
     division: '',
     year: '',
+    managementTeam: [],
   });
 
   const handleInputChange = (event) => {
@@ -17,9 +19,17 @@ const TeamForm = ({ onSubmit }) => {
     }));
   };
 
+  const handleManagerChange = (event) => {
+    const { value } = event.target;
+    setTeamData((prevData) => ({
+      ...prevData,
+      managementTeam: value,
+    }));
+  };
+
   const handleSubmit = (event) => {
-    event.preventDefault(); // Prevent page reload
-    onSubmit(teamData); // Send data to `handleCreateTeam`
+    event.preventDefault();
+    onSubmit(teamData);
   };
 
   return (
@@ -66,6 +76,12 @@ const TeamForm = ({ onSubmit }) => {
             required
           />
         </Grid>
+
+        {/* Manager Selection Dropdown */}
+        <Grid item xs={12}>
+          <ManagerSelect value={teamData.managementTeam} onChange={handleManagerChange} />
+        </Grid>
+
         <Grid item xs={12}>
           <Button variant="contained" color="primary" type="submit" fullWidth>
             Create Team
