@@ -5,6 +5,7 @@ import '../../style.css';
 
 const SiteHeader = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [showTeamsDropdown, setShowTeamsDropdown] = useState(false);
 
   return (
     <header className="site-header">
@@ -13,7 +14,22 @@ const SiteHeader = () => {
       <nav className="nav-links">
         <Link to="/" className="nav-link">Home</Link>
         <Link to="/createTeam" className="nav-link">Create Team</Link>
-        <Link to="/teams" className="nav-link">Teams</Link>
+        
+        {/* Teams Dropdown */}
+        <div 
+          className="teams-dropdown"
+          onMouseEnter={() => setShowTeamsDropdown(true)}
+          onMouseLeave={() => setShowTeamsDropdown(false)}
+        >
+          <span className="nav-link">Teams</span>
+          {showTeamsDropdown && (
+            <div className="dropdown-menu">
+              <Link to="/addTeam">Add Team</Link>
+              <Link to="/manageTeams">Manage Teams</Link>
+            </div>
+          )}
+        </div>
+        
         <Link to="/calendar" className="nav-link">Calendar</Link>
 
         {/* Settings / Profile Dropdown */}

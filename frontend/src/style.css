@@ -57,12 +57,21 @@ header {
   background-color: #f4f4f4;
 }
 
-.user-profile {
+.user-profile ,.teams-dropdown{
   position: relative;
   display: flex;
   align-items: center;
   cursor: pointer;
 }
+
+
+.user-profile .dropdown-menu {
+  right: 0; 
+  left: auto; 
+}
+
+
+
 
 .profile-icon {
   font-size: 30px;
@@ -70,18 +79,25 @@ header {
 }
 
 .dropdown-menu {
+  display: none;
   position: absolute;
   top: 100%;
-  right: 0;
+  left: 0;
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 150px;
-  display: flex;
   flex-direction: column;
+  z-index: 100;
 }
 
+.teams-dropdown:hover .dropdown-menu, 
+.user-profile:hover .dropdown-menu {
+  display: flex;
+}
+
+/* Dropdown link styling */
 .dropdown-menu a {
   padding: 10px;
   color: #333;
@@ -94,5 +110,4 @@ header {
   background-color: #f4f4f4;
   border-radius: 4px;
 }
-
   
