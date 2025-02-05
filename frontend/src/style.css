@@ -57,7 +57,7 @@ header {
   background-color: #f4f4f4;
 }
 
-.user-profile ,.teams-dropdown{
+.user-profile ,.teams-dropdown,.players-dropdown{
   position: relative;
   display: flex;
   align-items: center;
@@ -93,6 +93,7 @@ header {
 }
 
 .teams-dropdown:hover .dropdown-menu, 
+.players-dropdown:hover .dropdown-menu, 
 .user-profile:hover .dropdown-menu {
   display: flex;
 }

@@ -13,7 +13,23 @@ const SiteHeader = () => {
       
       <nav className="nav-links">
         <Link to="/" className="nav-link">Home</Link>
-        <Link to="/createTeam" className="nav-link">Create Team</Link>
+
+         {/* Players Dropdown */}
+         <div 
+          className="players-dropdown"
+          onMouseEnter={() => setShowTeamsDropdown(true)}
+          onMouseLeave={() => setShowTeamsDropdown(false)}
+        >
+          <span className="nav-link">Players</span>
+          {showTeamsDropdown && (
+            <div className="dropdown-menu">
+              <Link to="/addPlayer">Add Player</Link>
+              <Link to="/" >Search Player</Link>
+              <Link to="/m">Player Stats</Link>
+            </div>
+          )}
+        </div>
+
         
         {/* Teams Dropdown */}
         <div 
@@ -25,6 +41,7 @@ const SiteHeader = () => {
           {showTeamsDropdown && (
             <div className="dropdown-menu">
               <Link to="/addTeam">Add Team</Link>
+              <Link to="/createTeam" >Create Team</Link>
               <Link to="/manageTeams">Manage Teams</Link>
             </div>
           )}
