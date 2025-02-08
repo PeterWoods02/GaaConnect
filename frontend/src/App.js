@@ -4,6 +4,7 @@ import Home from './pages/homePage.js';
 import CreateTeam from './pages/createTeamPage.js';
 import AddTeam from './pages/addTeam.js';
 import AddPlayer from './pages/addPlayer.js';
+import Calendar from './pages/calendar.js';
 import SiteHeader from './components/siteHeader/index.js';
 
 const App = () => {
@@ -16,6 +17,8 @@ const App = () => {
           <Route path="/createTeam" element={<CreateTeam />} />
           <Route path="/addTeam" element={<AddTeam />}/>
           <Route path="/addPlayer" element={<AddPlayer />}/>
+          <Route path="/calendar" element={<Calendar />}/>
+          
         </Routes>
       </div>
     </Router>
