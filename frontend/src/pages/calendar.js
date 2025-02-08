@@ -41,12 +41,12 @@ const initialEvents = [
 
 const MyCalendar = () => {
   const [eventList, setEventList] = useState(initialEvents);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Controls modal
+  const [isModalOpen, setIsModalOpen] = useState(false); 
 
   // Add new event to the event list
   const addEvent = (newEvent) => {
     setEventList((prevList) => [...prevList, newEvent]);
-    setIsModalOpen(false); // Close the modal after adding an event
+    setIsModalOpen(false); 
   };
 
   return (
@@ -57,7 +57,7 @@ const MyCalendar = () => {
       <AddFixtureModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onAddEvent={addEvent} // Pass addEvent function to modal
+        onAddEvent={addEvent} 
       />
 
       {/* Calendar */}
