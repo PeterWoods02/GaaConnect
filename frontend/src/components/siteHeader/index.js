@@ -46,8 +46,23 @@ const SiteHeader = () => {
             </div>
           )}
         </div>
+
+        {/* Calendar Dropdown */}
+        <div 
+          className="teams-dropdown"
+          onMouseEnter={() => setShowTeamsDropdown(true)}
+          onMouseLeave={() => setShowTeamsDropdown(false)}
+        >
+          <span className="nav-link">Fixtures</span>
+          {showTeamsDropdown && (
+            <div className="dropdown-menu">
+              <Link to="/calendar">Calendar</Link>
+              <Link to="/addFixture">Add Fixture</Link>
+            </div>
+          )}
+        </div>
         
-        <Link to="/calendar" className="nav-link">Calendar</Link>
+        
 
         {/* Settings / Profile Dropdown */}
         <div 
