@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+body, main, section {
+  overflow: visible !important;
+  }
+
+
 header {
     display: flex;
     justify-content: space-between;
@@ -40,6 +45,8 @@ header {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  position: relative;
+  z-index: 3000;
 }
 
 .nav-links {
@@ -87,13 +94,16 @@ header {
   position: absolute;
   top: 100%;
   left: 0;
-  background-color: #fff;
+  background-color: white !important;
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   width: 150px;
   flex-direction: column;
-  z-index: 100;
+  z-index: 1000;
+  opacity: 1 !important; 
+  visibility: visible !important;
+  
 }
 
 .teams-dropdown:hover .dropdown-menu, 

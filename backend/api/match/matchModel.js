@@ -12,12 +12,14 @@ const matchSchema = new mongoose.Schema({
     },
     results: {
         type: String,
-        required: true, // Results of the match (win/lose/draw) maybe do w/l/d
+        required: false, // Results of the match (win/lose/draw) maybe do w/l/d
     },
     score: {
-        type: String,
-        required: true, // The score of the match, e.g., "1-10 x 1-12" see how to manage which team goes first
-    },                  // maybe split into sub with points and goals
+        teamGoals: { type: Number, required: true },
+        teamPoints: { type: Number, required: true },
+        oppositionGoals: { type: Number, required: true },
+        oppositionPoints: { type: Number, required: true },
+    },                
     opposition: {
         type: String,
         required: true, // The opposition team/club
