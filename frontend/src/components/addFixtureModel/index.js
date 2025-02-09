@@ -1,36 +1,77 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createMatch } from "../../api/matchApi.js"; 
+import { getTeams } from "../../api/teamsApi.js"; 
 
 const FullscreenForm = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [matchTitle, setMatchTitle] = useState("");
   const [date, setDate] = useState("");
-  const [venue, setVenue] = useState("");
+  const [location, setLocation] = useState("");
+  const [opposition, setOpposition] = useState("");
   const [admissionFee, setAdmissionFee] = useState("");
+  const [selectedTeam, setSelectedTeam] = useState(""); 
+  const [teams, setTeams] = useState([]); 
+  const [loading, setLoading] = useState(false); 
+  const [error, setError] = useState(""); 
 
-  
-  const handleSubmit = (e) => {
+  // Fetch the teams when the component mounts
+  useEffect(() => {
+    const fetchTeams = async () => {
+      try {
+        const teamList = await getTeams();
+        setTeams(teamList); 
+      } catch (error) {
+        setError("Failed to fetch teams. Please try again.");
+      }
+    };
+
+    fetchTeams();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic validation (could be expanded) will be using backend eventually anyways
-    if (!matchTitle || !date || !venue || !admissionFee) {
+    // Basic validation
+    if (!matchTitle || !date || !location || !opposition || !admissionFee || !selectedTeam) {
       alert("Please fill out all fields.");
       return;
     }
 
-   // will be sending to api
-    console.log({
+    // Prepare match data to send to the API
+    const matchData = {
       matchTitle,
       date,
-      venue,
+      location,
+      opposition,
       admissionFee,
-    });
+      team: selectedTeam, 
+    };
 
-    
-    setIsOpen(false);
-    setMatchTitle("");
-    setDate("");
-    setVenue("");
-    setAdmissionFee("");
+    try {
+      setLoading(true);
+      setError(""); 
+
+      // Send match data to the backend API
+      const newMatch = await createMatch(matchData);
+      console.log("New match created:", newMatch);
+
+      // Close form and reset fields after successful creation
+      setIsOpen(false);
+      setMatchTitle("");
+      setDate("");
+      setLocation("");
+      setOpposition("");
+      setAdmissionFee("");
+      setSelectedTeam(""); 
+
+      
+      alert("Match created successfully!");
+    } catch (error) {
+      console.error("Error creating match:", error);
+      setError("Failed to create match. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -48,7 +89,6 @@ const FullscreenForm = () => {
         <div
           className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-70 flex items-center justify-center z-50"
         >
-          
           <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
             <h2 className="text-2xl font-bold mb-4">Add New Fixture</h2>
 
@@ -83,15 +123,29 @@ const FullscreenForm = () => {
               </div>
 
               <div className="mb-4">
-                <label htmlFor="venue" className="block font-medium">
-                  Venue
+                <label htmlFor="location" className="block font-medium">
+                  Location
                 </label>
                 <input
-                  id="venue"
+                  id="location"
                   type="text"
                   className="w-full p-2 border rounded"
-                  value={venue}
-                  onChange={(e) => setVenue(e.target.value)}
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="mb-4">
+                <label htmlFor="opposition" className="block font-medium">
+                  Opposition
+                </label>
+                <input
+                  id="opposition"
+                  type="text"
+                  className="w-full p-2 border rounded"
+                  value={opposition}
+                  onChange={(e) => setOpposition(e.target.value)}
                   required
                 />
               </div>
@@ -110,6 +164,30 @@ const FullscreenForm = () => {
                 />
               </div>
 
+              {/* Dropdown for selecting team */}
+              <div className="mb-4">
+                <label htmlFor="team" className="block font-medium">
+                  Select Team
+                </label>
+                <select
+                  id="team"
+                  className="w-full p-2 border rounded"
+                  value={selectedTeam}
+                  onChange={(e) => setSelectedTeam(e.target.value)}
+                  required
+                >
+                  <option value="">Select a team</option>
+                  {teams.map((team) => (
+                    <option key={team._id} value={team._id}>
+                      {team.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Show error message if any */}
+              {error && <div className="text-red-600 mb-4">{error}</div>}
+
               {/* Submit & Cancel Buttons */}
               <div className="flex justify-between">
                 <button
@@ -122,8 +200,9 @@ const FullscreenForm = () => {
                 <button
                   type="submit"
                   className="bg-green-600 text-white px-4 py-2 rounded"
+                  disabled={loading} // Disable the button when loading
                 >
-                  Save Fixture
+                  {loading ? "Saving..." : "Save Fixture"}
                 </button>
               </div>
             </form>

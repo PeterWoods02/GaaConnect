@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import navigation hook
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import format from "date-fns/format";
 import parse from "date-fns/parse";
@@ -7,12 +8,11 @@ import getDay from "date-fns/getDay";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import AddFixtureModal from "../components/addFixtureModel/index.js"; 
 
-// Locale setup for the calendar
+// Locales for date-fns
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
 };
 
-// Localizer setup for date-fns
 const localizer = dateFnsLocalizer({
   format,
   parse,
@@ -21,43 +21,52 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Initial events
-const initialEvents = [
-  {
-    title: "Portlaw vs Ballyduff",
-    start: new Date(2025, 1, 10, 15, 0),
-    end: new Date(2025, 1, 10, 17, 0),
-    venue: "Portlaw",
-    admission: "€5",
-  },
-  {
-    title: "Portlaw vs Tallow",
-    start: new Date(2025, 1, 15, 18, 0),
-    end: new Date(2025, 1, 15, 20, 0),
-    venue: "Portlaw",
-    admission: "€7",
-  },
-];
-
 const MyCalendar = () => {
-  const [eventList, setEventList] = useState(initialEvents);
-  const [isModalOpen, setIsModalOpen] = useState(false); 
+  const [eventList, setEventList] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
 
-  // Add new event to the event list
-  const addEvent = (newEvent) => {
-    setEventList((prevList) => [...prevList, newEvent]);
-    setIsModalOpen(false); 
+  // Fetch matches from backend API
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/api/match");
+        const data = await response.json();
+
+        // Transform match data to fit calendar format
+        const events = data.map((match) => ({
+          id: match._id, // Store match ID for navigation
+          title: `${match.matchTitle} - ${match.opposition}`,
+          start: new Date(match.date),
+          end: new Date(match.date),
+          venue: match.location,
+          admission: match.admissionFee ? `€${match.admissionFee}` : "Free",
+        }));
+
+        setEventList(events);
+      } catch (error) {
+        console.error("Error fetching matches:", error);
+      }
+    };
+
+    fetchMatches();
+  }, []);
+
+  // Handle click on event
+  const handleSelectEvent = (event) => {
+    navigate(`/match/${event.id}`); // Navigate to match details page
   };
 
   return (
     <div className="p-4 w-full max-w-3xl mx-auto">
-      
-
       {/* Fixture Modal */}
       <AddFixtureModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
-        onAddEvent={addEvent} 
+        onAddEvent={(newEvent) => {
+          setEventList((prevList) => [...prevList, newEvent]);
+          setIsModalOpen(false);
+        }} 
       />
 
       {/* Calendar */}
@@ -69,6 +78,7 @@ const MyCalendar = () => {
         views={{ month: true, week: true, day: true, agenda: true }}
         defaultView="month"
         style={{ height: 500 }}
+        onSelectEvent={handleSelectEvent} // Handle click event
       />
     </div>
   );
