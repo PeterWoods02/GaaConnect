@@ -20,10 +20,10 @@ const matchSchema = new mongoose.Schema({
         required: false, // Results of the match (win/lose/draw) maybe do w/l/d
     },
     score: {
-        teamGoals: { type: Number, required: false },
-        teamPoints: { type: Number, required: false },
-        oppositionGoals: { type: Number, required: false },
-        oppositionPoints: { type: Number, required: false },
+        teamGoals: { type: Number, required: false, default: 0 },
+        teamPoints: { type: Number, required: false, default: 0 },
+        oppositionGoals: { type: Number, required: false, default: 0 },
+        oppositionPoints: { type: Number, required: false, default: 0 },
     },
     team: {
         type: mongoose.Schema.Types.ObjectId,
@@ -43,6 +43,10 @@ const matchSchema = new mongoose.Schema({
         type: Number,
         required: false, 
     },
+    events: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Event', 
+    }],
     createdAt: {
         type: Date,
         default: Date.now, 

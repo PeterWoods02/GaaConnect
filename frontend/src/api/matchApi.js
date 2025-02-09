@@ -98,3 +98,110 @@ export const deleteMatch = async (id) => {
     handleError('deleting match', error);
   }
 };
+
+// Start a match by ID
+export const startMatch = async (id) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}/start`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      handleError('starting match', 'Failed to start match');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('starting match', error);
+  }
+};
+
+// Update the score for a match
+export const updateScore = async (id, scoreData) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}/score`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(scoreData),
+    });
+
+    if (!response.ok) {
+      handleError('updating score', 'Failed to update score');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('updating score', error);
+  }
+};
+
+// Log an event (goal, card, substitution)
+export const logEvent = async (id, eventData) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}/event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(eventData),
+    });
+
+    if (!response.ok) {
+      handleError('logging event', 'Failed to log event');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('logging event', error);
+  }
+};
+
+// Update player statistics for a match
+export const updatePlayerStats = async (id, playerStats) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}/statistics`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(playerStats),
+    });
+
+    if (!response.ok) {
+      handleError('updating player statistics', 'Failed to update player statistics');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('updating player statistics', error);
+  }
+};
+
+// End a match by ID
+export const endMatch = async (id) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${id}/end`, {
+      method: 'POST',
+    });
+
+    if (!response.ok) {
+      handleError('ending match', 'Failed to end match');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('ending match', error);
+  }
+};
+
+
+
+
+
