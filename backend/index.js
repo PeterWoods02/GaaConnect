@@ -54,6 +54,6 @@ app.use('/api/statistics', statisticsRouter);
 app.use('/api/match', matchRouter);
 app.use('/api/player', playerRouter);
 
-app.listen(port, () => {
+server.listen(port, () => {
     console.info(`Server running at ${port}`);
   });

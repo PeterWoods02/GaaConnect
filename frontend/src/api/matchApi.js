@@ -23,6 +23,7 @@ export const getMatches = async () => {
 
 // Fetch a single match by ID
 export const getMatchById = async (id) => {
+  console.log("Fetching match with ID:", id);  
   try {
     const response = await fetch(`${BASE_URL}/${id}`);
     if (!response.ok) {
@@ -34,6 +35,7 @@ export const getMatchById = async (id) => {
     handleError('fetching match by ID', error);
   }
 };
+
 
 // Create a new match
 export const createMatch = async (matchData) => {

@@ -6,13 +6,14 @@ import AddTeam from './pages/addTeam.js';
 import AddPlayer from './pages/addPlayer.js';
 import Calendar from './pages/calendar.js';
 import MatchDetails from './pages/matchDetails.js';
+import MatchDay from './pages/matchDay.js';  
 import SiteHeader from './components/siteHeader/index.js';
 
 const App = () => {
   return (
     <Router>
       <div>
-        <SiteHeader /> 
+        <SiteHeader />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/createTeam" element={<CreateTeam />} />
@@ -20,7 +21,7 @@ const App = () => {
           <Route path="/addPlayer" element={<AddPlayer />}/>
           <Route path="/calendar" element={<Calendar />}/>
           <Route path="/match/:id" element={<MatchDetails />}/>
-          
+          <Route path="/match/live/:id" element={<MatchDay />} /> 
         </Routes>
       </div>
     </Router>
