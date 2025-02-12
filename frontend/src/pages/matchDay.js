@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getMatchById, updateMatch } from '../api/matchApi.js'; 
-import { sendAdminAction } from '../services/socketClient.js'; 
-
+import { getMatchById, updateMatch } from '../api/matchApi.js';
+import { sendAdminAction } from '../services/socketClient.js';
+import { Button, Typography, Card, CardContent, CircularProgress, Grid, Paper, Container } from '@mui/material';
+import Scoreboard from '../components/matchDayComponents/scoreboard/index.js';
+import LiveTimer from '../components/matchDayComponents/liveTimer/index.js';
+import EventLog from '../components/matchDayComponents/eventLog/index.js';
+import AdminControls from '../components/matchDayComponents/adminScoring/index.js';
 
 const MatchPage = () => {
   const { id } = useParams();
   const [matchData, setMatchData] = useState(null);
-  const [timer, setTimer] = useState(0); 
-  const [intervalId, setIntervalId] = useState(null); 
+  const [timer, setTimer] = useState(0);
+  const [intervalId, setIntervalId] = useState(null);
 
-  // Fetch match details from API when component mounts
+  // Mock player data (replace with actual data from your API)
+  const teamAPlayers = ['Player 1', 'Player 2', 'Player 3'];
+  const teamBPlayers = ['Player 4', 'Player 5', 'Player 6'];
+
   useEffect(() => {
     const fetchMatchDetails = async () => {
       try {
@@ -23,101 +30,107 @@ const MatchPage = () => {
         console.error('Failed to fetch match details:', error);
       }
     };
-    
     fetchMatchDetails();
   }, [id]);
 
-  // Start the match timer when match status is 'live'
   const startTimer = () => {
     if (!intervalId) {
       const id = setInterval(() => {
-        setTimer(prevTime => prevTime + 1); // Increase timer every minute
-      }, 60000); // Update every 60 seconds
+        setTimer((prevTime) => prevTime + 1);
+      }, 60000);
       setIntervalId(id);
     }
   };
 
-  // Stop the timer (e.g., when match ends)
   const stopTimer = () => {
     clearInterval(intervalId);
     setIntervalId(null);
   };
 
-  // Handle start match action
   const handleStartMatch = async () => {
     try {
       const updatedMatch = await updateMatch(id, { status: 'live', currentTime: 0 });
-      setMatchData(updatedMatch); 
-      startTimer(); 
-      sendAdminAction({ type: 'start', id }); // Emit WebSocket event
+      setMatchData(updatedMatch);
+      startTimer();
+      sendAdminAction({ type: 'start', id });
     } catch (error) {
       console.error('Failed to start match:', error);
     }
   };
 
-  // Handle event logging (Goal, Card, Substitution)
-  const handleLogEvent = (eventType, eventData) => {
-    sendAdminAction({ type: eventType, ...eventData, id }); 
-  };
-
-  // Handle live score update (e.g., when a goal is scored)
-  const handleUpdateScore = (team, points) => {
-    const updatedScore = { ...matchData.score, [team]: points }; // Update score for the team
-    updateMatch(id, { score: updatedScore });
-    sendAdminAction({ type: 'score', team, points, id }); 
-  };
-
-  // Handle match events like goals, cards, substitutions
-  const renderEvents = () => {
-    return matchData?.events.map((event, index) => (
-      <div key={index}>
-        <p>{event.type} - {event.team} at {event.time}</p>
-      </div>
-    ));
+  const handleLogEvent = async (eventType, eventData) => {
+    try {
+      const updatedMatch = await updateMatch(id, {
+        events: [...matchData.events, { type: eventType, ...eventData }],
+      });
+      setMatchData(updatedMatch);
+      sendAdminAction({ type: eventType, ...eventData, id });
+    } catch (error) {
+      console.error('Failed to log event:', error);
+    }
   };
 
   if (!matchData) {
-    return <div>Loading...</div>; // Loading state if match data is not yet fetched
+    return (
+      <Container>
+        <CircularProgress />
+      </Container>
+    );
   }
 
   return (
-    <div>
-      <h1>Match: {matchData.matchTitle}</h1>
-      <p>{matchData.date}</p>
-      <p>{matchData.location}</p>
-      
-      {/* Scoreboard */}
-      <div>
-        <h2>Scoreboard:</h2>
-        <p>{matchData.score.teamA} - {matchData.score.teamB}</p>
-      </div>
-      
-      {/* Timer */}
-      <div>
-        <h2>Live Timer:</h2>
-        <p>{timer} minutes</p>
-      </div>
+    <Container>
+      <Typography variant="h3" align="center" gutterBottom>
+        {matchData.matchTitle}
+      </Typography>
+      <Typography variant="subtitle1" align="center" gutterBottom>
+        {matchData.date} | {matchData.location}
+      </Typography>
 
-      {/* Start Match Button */}
-      {matchData.status === 'upcoming' && (
-        <button onClick={handleStartMatch}>Start Match</button>
-      )}
+      <Grid container spacing={3}>
+        {/* Scoreboard and Timer */}
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Scoreboard teamA={matchData.score.teamA} teamB={matchData.score.teamB} />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <LiveTimer timer={timer} />
+          </Paper>
+        </Grid>
 
-      {/* Event Buttons (for Admin) */}
-      <div>
-        <button onClick={() => handleLogEvent('goal', { team: 'teamA', time: timer })}>Log Goal for Team A</button>
-        <button onClick={() => handleLogEvent('goal', { team: 'teamB', time: timer })}>Log Goal for Team B</button>
-        <button onClick={() => handleLogEvent('card', { team: 'teamA', type: 'yellow', time: timer })}>Log Yellow Card for Team A</button>
-        <button onClick={() => handleLogEvent('card', { team: 'teamB', type: 'red', time: timer })}>Log Red Card for Team B</button>
-        <button onClick={() => handleLogEvent('substitution', { team: 'teamA', playerIn: 'Player X', playerOut: 'Player Y', time: timer })}>Log Substitution for Team A</button>
-      </div>
+        {/* Admin Controls */}
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Admin Controls
+            </Typography>
+            {matchData.status === 'upcoming' && (
+              <Button variant="contained" color="primary" onClick={handleStartMatch}>
+                Start Match
+              </Button>
+            )}
+            <AdminControls
+              onLogEvent={handleLogEvent}
+              timer={timer}
+              teamAPlayers={teamAPlayers}
+              teamBPlayers={teamBPlayers}
+            />
+          </Paper>
+        </Grid>
 
-      {/* Match Events (Goals, Cards, Substitutions) */}
-      <div>
-        <h3>Match Events:</h3>
-        {renderEvents()}
-      </div>
-    </div>
+        {/* Event Log */}
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Typography variant="h5" gutterBottom>
+              Match Events
+            </Typography>
+            <EventLog events={matchData.events} />
+          </Paper>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 
