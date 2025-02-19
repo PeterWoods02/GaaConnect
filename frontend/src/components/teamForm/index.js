@@ -9,6 +9,7 @@ const TeamForm = ({ onSubmit }) => {
     division: '',
     year: '',
     managementTeam: [],
+    players: [],
   });
 
   const handleInputChange = (event) => {

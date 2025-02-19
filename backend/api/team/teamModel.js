@@ -18,6 +18,11 @@ const teamSchema = new mongoose.Schema({
       type: Number,
       required: true  // The year they will compete in
     },
+    players: [{  
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Player',  // Reference to Player model
+      required: false 
+    }],
     managementTeam: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Management',  // ref management model

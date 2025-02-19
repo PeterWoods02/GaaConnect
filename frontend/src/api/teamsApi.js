@@ -101,3 +101,49 @@ export const deleteTeam = async (id) => {
     handleError('deleting team', error);
   }
 };
+
+
+// Function to add a player to a team
+export const addPlayerToTeam = async (teamId, playerId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${teamId}/players`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ playerId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to add player to team');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error adding player to team:', error);
+    throw error; 
+  }
+};
+
+
+//remove player from a team
+export const removePlayerFromTeam = async (teamId, playerId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${teamId}/players/${playerId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to remove player from team');
+    }
+
+    const data = await response.json();
+    console.log('Player removed:', data);
+    // update ui
+  } catch (error) {
+    console.error('Error removing player:', error);
+  }
+};
+
+
+

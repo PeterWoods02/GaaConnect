@@ -42,7 +42,7 @@ const SiteHeader = () => {
             <div className="dropdown-menu">
               <Link to="/addTeam">Add Team</Link>
               <Link to="/createTeam" >Create Team</Link>
-              <Link to="/manageTeams">Manage Teams</Link>
+              <Link to="/selectTeam">Manage Teams</Link>
             </div>
           )}
         </div>
