@@ -25,7 +25,7 @@ const SiteHeader = () => {
             <div className="dropdown-menu">
               <Link to="/addPlayer">Add Player</Link>
               <Link to="/" >Search Player</Link>
-              <Link to="/m">Player Stats</Link>
+              <Link to="/playerStats">Player Stats</Link>
             </div>
           )}
         </div>

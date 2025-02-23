@@ -10,6 +10,7 @@ import MatchDay from './pages/matchDay.js';
 import SelectTeam from './pages/selectTeam';
 import PlayerManagement from './pages/playerManagement';
 import ManageTeams from './pages/manageTeams.js';  
+import PlayerStats from './pages/playerStats.js';
 import SiteHeader from './components/siteHeader/index.js';
 
 const App = () => {
@@ -28,6 +29,7 @@ const App = () => {
           <Route path="/playerManagement/:teamId" element={<PlayerManagement/>} />
           <Route path="/match/:id" element={<MatchDetails />}/>
           <Route path="/match/live/:id" element={<MatchDay />} /> 
+          <Route path="/playerStats" element={<PlayerStats />}/>
         </Routes>
       </div>
     </Router>
