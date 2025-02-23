@@ -1,109 +1,73 @@
 import React, { useState, useEffect } from "react";
-import {Card,CardContent,Typography,Autocomplete,List,ListItem,ListItemText,Button,TextField,} from "@mui/material";
-import { addPlayerToTeam, removePlayerFromTeam } from "../api/teamsApi";
+import { Card, CardContent, Typography, Grid } from "@mui/material";
+import { addPlayerToTeam, removePlayerFromTeam, getTeamById } from "../api/teamsApi";
 import { getPlayers } from "../api/playersApi";
 import { useParams } from "react-router-dom";
+import PlayerList from "../components/playerManagement/playerList/index.js";
 
 const PlayerManagementPage = () => {
-  const [players, setPlayers] = useState([]); 
-  const [allPlayers, setAllPlayers] = useState([]); 
-  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [teamPlayers, setTeamPlayers] = useState([]);
+  const [availablePlayers, setAvailablePlayers] = useState([]);
   const { teamId } = useParams();
 
-  // Fetch all players from the database
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const data = await getPlayers();
-        setAllPlayers(data);
+        const allPlayers = await getPlayers();
+        const teamData = await getTeamById(teamId);
+
+        if (!teamData || !teamData.players) {
+          console.error("Error: Invalid team data received", teamData);
+          return;
+        }
+
+        const teamPlayerIds = teamData.players.map((player) => player._id);
+        setTeamPlayers(teamData.players);
+        setAvailablePlayers(allPlayers.filter((player) => !teamPlayerIds.includes(player._id)));
       } catch (error) {
         console.error("Error fetching players:", error);
       }
     };
-    fetchPlayers();
-  }, []);
 
-  // Add selected player to the team
-  const handleAddPlayer = async () => {
-    if (selectedPlayer) {
-      // Ensure player isn't already added to the team
-      if (!players.some((player) => player._id === selectedPlayer._id)) {
-        try {
-          // Pass teamId and selectedPlayer to the API call
-          await addPlayerToTeam(teamId, selectedPlayer._id); 
-          setPlayers([...players, selectedPlayer]); // update UI with new player
-        } catch (error) {
-          console.error("Error adding player:", error);
-        }
-      }
-      setSelectedPlayer(null); // Reset after adding player
+    fetchPlayers();
+  }, [teamId]);
+
+  const handleAddPlayer = async (player) => {
+    try {
+      await addPlayerToTeam(teamId, player._id);
+      setTeamPlayers([...teamPlayers, player]);
+      setAvailablePlayers(availablePlayers.filter((p) => p._id !== player._id));
+    } catch (error) {
+      console.error("Error adding player:", error);
     }
   };
-  
 
-  // Remove player from the team
-  const handleRemovePlayer = async (playerId) => {
+  const handleRemovePlayer = async (player) => {
     try {
-      // Pass teamId and playerId to remove the player
-      await removePlayerFromTeam(teamId, playerId);
-      setPlayers(players.filter((player) => player._id !== playerId)); 
+      await removePlayerFromTeam(teamId, player._id);
+      setAvailablePlayers([...availablePlayers, player]);
+      setTeamPlayers(teamPlayers.filter((p) => p._id !== player._id));
     } catch (error) {
       console.error("Error removing player:", error);
     }
   };
-  
 
   return (
     <Card sx={{ p: 2 }}>
       <CardContent>
-        <Typography variant="h6" fontWeight="bold">
+        <Typography variant="h6" fontWeight="bold" textAlign="center">
           Player Management
         </Typography>
 
-        {/* Autocomplete Dropdown */}
-        <Autocomplete
-          options={allPlayers}
-          getOptionLabel={(option) => `${option.name} (Email: ${option.email})`} // Display both name and email
-          onChange={(event, newValue) => setSelectedPlayer(newValue)}
-          isOptionEqualToValue={(option, value) => option._id === value._id} // Ensure uniqueness
-          renderInput={(params) => (
-            <TextField {...params} label="Search Player" variant="outlined" />
-          )}
-          sx={{ mb: 2 }}
-        />
+        <Grid container spacing={3} justifyContent="center">
+          <Grid item xs={5}>
+            <PlayerList title="Available Players" players={availablePlayers} onPlayerAction={handleAddPlayer} actionType="add" />
+          </Grid>
 
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleAddPlayer}
-          disabled={!selectedPlayer}
-        >
-          Add Player
-        </Button>
-
-        {/* Players List */}
-        <List sx={{ mt: 2 }}>
-          {players.map((player) => (
-            <ListItem
-              key={player._id} 
-              secondaryAction={
-                <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => handleRemovePlayer(player._id)}
-                >
-                  Remove
-                </Button>
-              }
-            >
-              {/* Display Name and Email for each player */}
-              <ListItemText
-                primary={`${player.name} (Email: ${player.email})`}
-                secondary={player.position}
-              />
-            </ListItem>
-          ))}
-        </List>
+          <Grid item xs={5}>
+            <PlayerList title="Players in Team" players={teamPlayers} onPlayerAction={handleRemovePlayer} actionType="remove" />
+          </Grid>
+        </Grid>
       </CardContent>
     </Card>
   );
