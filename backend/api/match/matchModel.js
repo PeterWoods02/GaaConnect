@@ -47,6 +47,11 @@ const matchSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Event', 
     }],
+    teamPositions: {
+        type: Map,
+        of: String,  // can store player names or player IDs
+        default: {}
+      },
     createdAt: {
         type: Date,
         default: Date.now, 

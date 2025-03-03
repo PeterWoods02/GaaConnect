@@ -83,6 +83,45 @@ export const updateMatch = async (id, matchData) => {
   }
 };
 
+// Update or create team positions for a match
+export const updateTeamPositions = async (matchId, teamPositions) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${matchId}/team`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ teamPositions }), 
+    });
+
+    if (!response.ok) {
+      handleError('updating team positions', 'Failed to update team positions');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('updating team positions', error);
+  }
+};
+
+// get the team
+export const getTeamForMatch = async (matchId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${matchId}/squad`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch team data');
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching team data:', error);
+    throw error;
+  }
+};
+
+
+
 // Delete a match by ID
 export const deleteMatch = async (id) => {
   try {

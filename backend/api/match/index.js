@@ -96,6 +96,60 @@ router.put('/:id', async (req, res) => {
     }
 });
 
+// Route to update or create team positions for a match
+router.put('/:id/team', async (req, res) => {
+    const { teamPositions } = req.body; 
+
+    try {
+        const match = await Match.findById(req.params.id);
+
+        if (!match) {
+            return res.status(404).json({ message: 'Match not found' });
+        }
+
+        // Validate the structure 
+        if (!teamPositions || typeof teamPositions !== 'object' || Object.keys(teamPositions).length === 0) {
+            return res.status(400).json({ message: 'Invalid or missing teamPositions' });
+        }
+
+        // Update the teamPositions 
+        match.teamPositions = teamPositions; 
+
+        await match.save();
+
+        res.status(200).json(match);
+    } catch (error) {
+        console.error('Error updating team positions:', error);
+        res.status(500).json({ message: 'Failed to update team positions' });
+    }
+});
+
+// Get the team for a match
+router.get("/:id/squad", async (req, res) => {
+    try {
+        // Fetch the match by its ID
+        const match = await Match.findById(req.params.id);
+
+        if (!match) {
+            return res.status(404).json({ message: "Match not found" });
+        }
+
+        // Check if teamPositions exists
+        if (!match.teamPositions || Object.keys(match.teamPositions).length === 0) {
+            return res.status(404).json({ message: "No team positions found for this match" });
+        }
+
+        // Send the teamPositions data
+        res.status(200).json(match.teamPositions);
+    } catch (error) {
+        console.error("Error fetching team positions:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+});
+
+
+
+
 // Delete a match
 router.delete('/:id', async (req, res) => {
     try {

@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
 import DropZone from '../dropZones/index.js';
 import theme from '../../assets/themes/theme.js';
+import { updateTeamPositions } from '../../api/matchApi.js';
+import { useParams } from 'react-router-dom';
 
 const Pitch = () => {
+  const { matchId } = useParams();
+
   const [positions, setPositions] = useState({
     Goalkeeper: null,
     RightCornerBack: null,
@@ -64,7 +68,20 @@ const Pitch = () => {
     }));
   };
 
-  
+  // Handle save team button click
+  const handleSaveTeam = async () => {
+    try {
+      const updatedMatch = await updateTeamPositions(matchId, positions);
+      console.log('Team positions saved:', updatedMatch);
+      console.log('Match ID:', matchId);
+
+      // could show success here 
+    } catch (error) {
+      console.error('Error saving team positions:', error);
+      // could show error here 
+    }
+  };
+
   return (
     <div
       style={{
@@ -84,17 +101,35 @@ const Pitch = () => {
         }}
       />
 
-{Object.keys(positions).map((position) => (
-  <DropZone
-    key={position}
-    position={position} 
-    positionName={positionDisplayNames[position]}
-    assignedPlayer={positions[position]}
-    onDrop={handleDrop}
-    style={dropZoneStyles[position]}
-    
-  />
-))}
+      {Object.keys(positions).map((position) => (
+        <DropZone
+          key={position}
+          position={position}
+          positionName={positionDisplayNames[position]}
+          assignedPlayer={positions[position]}
+          onDrop={handleDrop}
+          style={dropZoneStyles[position]}
+        />
+      ))}
+
+      
+      <button
+        onClick={handleSaveTeam}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          padding: '10px 20px',
+          fontSize: '16px',
+          backgroundColor: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+        }}
+      >
+        Save Team
+      </button>
     </div>
   );
 };

@@ -12,7 +12,9 @@ import SelectMatch from './pages/selectMatch.js';
 import PlayerManagement from './pages/playerManagement';
 import ManageTeams from './pages/manageTeams.js';  
 import PlayerStats from './pages/playerStats.js';
+import DisplayTeam from './pages/displayTeam.js';
 import SiteHeader from './components/siteHeader/index.js';
+
 
 const App = () => {
   return (
@@ -21,7 +23,7 @@ const App = () => {
         <SiteHeader />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/createTeam" element={<CreateTeam />} />
+          <Route path="/createTeam/:matchId" element={<CreateTeam />} />
           <Route path="/addTeam" element={<AddTeam />}/>
           <Route path="/addPlayer" element={<AddPlayer />}/>
           <Route path="/calendar" element={<Calendar />}/>
@@ -32,6 +34,7 @@ const App = () => {
           <Route path="/match/:id" element={<MatchDetails />}/>
           <Route path="/match/live/:id" element={<MatchDay />} /> 
           <Route path="/playerStats" element={<PlayerStats />}/>
+          <Route path="/match/team/:id" element={<DisplayTeam />} />
         </Routes>
       </div>
     </Router>

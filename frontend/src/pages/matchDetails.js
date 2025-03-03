@@ -38,6 +38,10 @@ const MatchDetails = () => {
     navigate(`/match/live/${id}`);
   };
 
+  const navigateToSquad = () => {
+    navigate(`/match/team/${id}`); 
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold">{match.matchTitle}</h1>
@@ -66,7 +70,17 @@ const MatchDetails = () => {
         <button onClick={navigateToMatchDay} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded">
         Start Live Match
       </button>
-    </div>
+    
+
+    <div className="mt-4 flex justify-center">
+        <button 
+          onClick={navigateToSquad} 
+          className="px-6 py-3 bg-green-600 text-white rounded-lg text-xl hover:bg-green-700 transition duration-300"
+        >
+          View Match Day Squad
+        </button>
+      </div>
+      </div>
   );
 };
 
