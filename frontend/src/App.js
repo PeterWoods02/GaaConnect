@@ -7,7 +7,8 @@ import AddPlayer from './pages/addPlayer.js';
 import Calendar from './pages/calendar.js';
 import MatchDetails from './pages/matchDetails.js';
 import MatchDay from './pages/matchDay.js';  
-import SelectTeam from './pages/selectTeam';
+import SelectTeam from './pages/selectTeam.js';
+import SelectMatch from './pages/selectMatch.js';
 import PlayerManagement from './pages/playerManagement';
 import ManageTeams from './pages/manageTeams.js';  
 import PlayerStats from './pages/playerStats.js';
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/calendar" element={<Calendar />}/>
           <Route path="/manageTeams/:teamId" element={<ManageTeams />}/>
           <Route path="/selectTeam" element={<SelectTeam />} />
+          <Route path="/selectMatch" element={<SelectMatch />} />
           <Route path="/playerManagement/:teamId" element={<PlayerManagement/>} />
           <Route path="/match/:id" element={<MatchDetails />}/>
           <Route path="/match/live/:id" element={<MatchDay />} /> 

@@ -41,7 +41,7 @@ const SiteHeader = () => {
           {showTeamsDropdown && (
             <div className="dropdown-menu">
               <Link to="/addTeam">Add Team</Link>
-              <Link to="/createTeam" >Create Team</Link>
+              <Link to="/selectMatch" >Create Team</Link>
               <Link to="/selectTeam">Manage Teams</Link>
             </div>
           )}
