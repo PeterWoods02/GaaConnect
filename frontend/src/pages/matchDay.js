@@ -1,37 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { getMatchById, updateMatch } from '../api/matchApi.js';
+import { getMatchById, updateMatch, getTeamForMatch } from '../api/matchApi.js';
 import { sendAdminAction } from '../services/socketClient.js';
 import { Button, Typography, Card, CardContent, CircularProgress, Grid, Paper, Container } from '@mui/material';
 import Scoreboard from '../components/matchDayComponents/scoreboard/index.js';
 import LiveTimer from '../components/matchDayComponents/liveTimer/index.js';
 import EventLog from '../components/matchDayComponents/eventLog/index.js';
 import AdminControls from '../components/matchDayComponents/adminScoring/index.js';
+import PlayerSelectorDialog from '../components/matchDayComponents/playerSelectorDialog/index.js';
+import { getPlayerById } from '../api/playersApi.js';
+
 
 const MatchPage = () => {
   const { id } = useParams();
   const [matchData, setMatchData] = useState(null);
   const [timer, setTimer] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [showPlayerSelector, setShowPlayerSelector] = useState(false);
+  const [pendingEvent, setPendingEvent] = useState(null);
+  const [teamAPlayers, setTeamAPlayers] = useState([]);
 
-  // Mock player data (replace with actual data from your API)
-  const teamAPlayers = ['Player 1', 'Player 2', 'Player 3'];
-  const teamBPlayers = ['Player 4', 'Player 5', 'Player 6'];
 
   useEffect(() => {
     const fetchMatchDetails = async () => {
       try {
-        const data = await getMatchById(id);
-        setMatchData(data);
-        if (data.status === 'live') {
-          startTimer();
+        const match = await getMatchById(id);
+        setMatchData(match);  // ← This is missing
+  
+        let players = match.players;
+        if (!Array.isArray(players)) {
+          players = Object.values(players || {});
         }
+  
+        const playerDetails = await Promise.all(
+          players.map(async (playerId) => {
+            try {
+              return await getPlayerById(playerId);
+            } catch (error) {
+              console.error(`Error fetching player with ID ${playerId}:`, error);
+              return null;
+            }
+          })
+        );
+  
+        const validPlayers = playerDetails.filter((player) => player !== null);
+        setTeamAPlayers(validPlayers);  
+  
       } catch (error) {
-        console.error('Failed to fetch match details:', error);
+        console.error('Error fetching match details:', error);
       }
     };
+  
     fetchMatchDetails();
   }, [id]);
+  
 
   const startTimer = () => {
     if (!intervalId) {
@@ -69,6 +92,31 @@ const MatchPage = () => {
       console.error('Failed to log event:', error);
     }
   };
+
+  const handleAdminLogEvent = (team, eventType) => {
+    if (team === 'teamA' && (eventType === 'goal' || eventType === 'point')) {
+      // Save pending event and show player selector
+      setPendingEvent({ team, eventType });
+      setShowPlayerSelector(true);
+    } else {
+      // Directly log events for teamB or other non-player-specific events
+      handleLogEvent(eventType, { team, player: null });
+    }
+  };
+  
+  
+
+  const handlePlayerSelected = (player) => {
+    setShowPlayerSelector(false);
+    if (pendingEvent) {
+      handleLogEvent(pendingEvent.eventType, { team: pendingEvent.team, player });
+      setPendingEvent(null);  // Clear pending event
+    }
+  };
+  
+
+  
+  
 
   if (!matchData) {
     return (
@@ -112,11 +160,17 @@ const MatchPage = () => {
               </Button>
             )}
             <AdminControls
-              onLogEvent={handleLogEvent}
+              onLogEvent={handleAdminLogEvent}
               timer={timer}
-              teamAPlayers={teamAPlayers}
-              teamBPlayers={teamBPlayers}
+              matchId={id}
             />
+
+            <PlayerSelectorDialog
+              open={showPlayerSelector}
+              players={teamAPlayers}
+              onSelect={handlePlayerSelected}
+            />
+
           </Paper>
         </Grid>
 

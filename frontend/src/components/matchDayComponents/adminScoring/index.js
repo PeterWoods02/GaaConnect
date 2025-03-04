@@ -1,174 +1,195 @@
-import React, { useState } from 'react';
-import { Button, Grid, Typography, Paper, TextField, MenuItem, Select, FormControl, InputLabel } from '@mui/material';
-import SportsSoccerIcon from '@mui/icons-material/SportsSoccer'; // Goal icon
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'; // Point icon
-import WarningIcon from '@mui/icons-material/Warning'; // Yellow card icon
-import DangerousIcon from '@mui/icons-material/Dangerous'; // Red card icon
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz'; // Substitution icon
+import React, { useState, useEffect } from 'react';
+import { Button, Grid, Typography, Paper, CircularProgress, MenuItem, Select, Dialog, DialogActions, DialogTitle, DialogContent } from '@mui/material';
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import WarningIcon from '@mui/icons-material/Warning';
+import DangerousIcon from '@mui/icons-material/Dangerous';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import { getTeamForMatch } from '../../../api/matchApi';
+import { getPlayerById } from '../../../api/playersApi';
 
-const AdminControls = ({ onLogEvent, timer, teamAPlayers, teamBPlayers }) => {
-  const [selectedPlayerA, setSelectedPlayerA] = useState('');
-  const [selectedPlayerB, setSelectedPlayerB] = useState('');
-  const [oppositionNumber, setOppositionNumber] = useState('');
+const AdminControls = ({ onLogEvent, timer, matchId }) => {
+  const [openPlayerSelect, setOpenPlayerSelect] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState('');
+  const [players, setPlayers] = useState([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
+  const [team, setTeam] = useState('home');
+  const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
-  const handleLogEventForTeam = (team, eventType) => {
-    const eventData = {
-      team,
-      time: timer,
-      player: team === 'teamA' ? selectedPlayerA : team === 'teamB' ? selectedPlayerB : oppositionNumber || 'Unknown',
+  useEffect(() => {
+    const fetchPlayers = async () => {
+      try {
+        setLoadingPlayers(true);
+        const homeTeam = await getTeamForMatch(matchId);
+
+        if (!homeTeam || typeof homeTeam !== 'object') {
+          console.error('Invalid team data:', homeTeam);
+          setPlayers([]);
+          return;
+        }
+
+        const playerIds = Object.values(homeTeam);
+        const uniquePlayerIds = [...new Set(playerIds)];
+
+        const playerDetails = await Promise.all(
+          uniquePlayerIds.map(async (playerId) => {
+            try {
+              return await getPlayerById(playerId);
+            } catch (error) {
+              console.error(`Error fetching player with ID ${playerId}:`, error);
+              return null;
+            }
+          })
+        );
+
+        setPlayers(playerDetails.filter(Boolean));
+      } catch (error) {
+        console.error('Error fetching players:', error);
+        setPlayers([]);
+      } finally {
+        setLoadingPlayers(false);
+      }
     };
+
+    fetchPlayers();
+  }, [matchId]);
+
+  const handleEvent = (eventType, teamType) => {
+    setTeam(teamType);
+    setSelectedEvent(eventType);
+  
+    if (eventType === 'goal' || eventType === 'yellowCard' || eventType === 'redCard') {
+      
+      setOpenPlayerSelect(true);
+    } else {
+     
+      handleLogEvent(eventType, null);
+    }
+  };
+  
+  const handleLogEvent = (eventType, player = null) => {
+    const eventData = {
+      time: timer,
+      player, 
+      team,
+    };
+  
     onLogEvent(eventType, eventData);
-    setSelectedPlayerA('');
-    setSelectedPlayerB('');
-    setOppositionNumber('');
+    setOpenPlayerSelect(false);
+    setSelectedPlayerId('');
+  };
+  
+  // Handle the selection of a player
+  const handleConfirmPlayer = () => {
+    const selectedPlayer = players.find(p => p._id === selectedPlayerId);
+    handleLogEvent(selectedEvent, selectedPlayer); 
+  };
+  
+
+  const handleCancelPlayerSelection = () => {
+    setOpenPlayerSelect(false);
+    setSelectedPlayerId('');
   };
 
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Admin Controls
-      </Typography>
+      <Typography variant="h5" gutterBottom>Admin Controls</Typography>
+
       <Grid container spacing={3}>
-        {/* Team A Controls */}
+        {/* Home Team Controls */}
         <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            Team A
-          </Typography>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Select Player (Team A)</InputLabel>
-            <Select value={selectedPlayerA} onChange={(e) => setSelectedPlayerA(e.target.value)}>
-              {teamAPlayers.map((player) => (
-                <MenuItem key={player} value={player}>
-                  {player}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Typography variant="h6" gutterBottom>Team A (Home)</Typography>
           <Grid container spacing={2}>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<SportsSoccerIcon />}
-                onClick={() => handleLogEventForTeam('teamA', 'goal')}
-              >
-                Goal
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<EmojiEventsIcon />}
-                onClick={() => handleLogEventForTeam('teamA', 'point')}
-              >
-                Point
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="warning"
-                startIcon={<WarningIcon />}
-                onClick={() => handleLogEventForTeam('teamA', 'yellowCard')}
-              >
-                Yellow Card
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<DangerousIcon />}
-                onClick={() => handleLogEventForTeam('teamA', 'redCard')}
-              >
-                Red Card
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<SwapHorizIcon />}
-                onClick={() => handleLogEventForTeam('teamA', 'substitution')}
-              >
-                Sub
-              </Button>
-            </Grid>
+            {['goal', 'point', 'yellowCard', 'redCard', 'substitution'].map(event => (
+              <Grid item key={event}>
+                <Button
+                  variant="contained"
+                  color={getButtonColor(event)}
+                  startIcon={getEventIcon(event)}
+                  onClick={() => handleEvent(event, 'home')}
+                >
+                  {capitalize(event)}
+                </Button>
+              </Grid>
+            ))}
           </Grid>
         </Grid>
 
-        {/* Team B Controls */}
+        {/* Away Team Controls */}
         <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            Team B
-          </Typography>
-          <FormControl fullWidth margin="normal">
-            <InputLabel>Select Player (Team B)</InputLabel>
-            <Select value={selectedPlayerB} onChange={(e) => setSelectedPlayerB(e.target.value)}>
-              {teamBPlayers.map((player) => (
-                <MenuItem key={player} value={player}>
-                  {player}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Typography variant="h6" gutterBottom>Team B (Away)</Typography>
           <Grid container spacing={2}>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<SportsSoccerIcon />}
-                onClick={() => handleLogEventForTeam('teamB', 'goal')}
-              >
-                Goal
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<EmojiEventsIcon />}
-                onClick={() => handleLogEventForTeam('teamB', 'point')}
-              >
-                Point
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="warning"
-                startIcon={<WarningIcon />}
-                onClick={() => handleLogEventForTeam('teamB', 'yellowCard')}
-              >
-                Yellow Card
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<DangerousIcon />}
-                onClick={() => handleLogEventForTeam('teamB', 'redCard')}
-              >
-                Red Card
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                variant="contained"
-                color="secondary"
-                startIcon={<SwapHorizIcon />}
-                onClick={() => handleLogEventForTeam('teamB', 'substitution')}
-              >
-                Sub
-              </Button>
-            </Grid>
+            {['goal', 'point', 'yellowCard', 'redCard', 'substitution'].map(event => (
+              <Grid item key={event}>
+                <Button
+                  variant="contained"
+                  color={getButtonColor(event)}
+                  startIcon={getEventIcon(event)}
+                  onClick={() => handleEvent(event, 'away')}
+                >
+                  {capitalize(event)}
+                </Button>
+              </Grid>
+            ))}
           </Grid>
         </Grid>
       </Grid>
+
+      {/* Player Selector Dialog */}
+      <Dialog open={openPlayerSelect} onClose={handleCancelPlayerSelection}>
+        <DialogTitle>Select Player</DialogTitle>
+        <DialogContent>
+          {loadingPlayers ? (
+            <CircularProgress />
+          ) : (
+            <Select
+              fullWidth
+              value={selectedPlayerId}
+              onChange={(e) => setSelectedPlayerId(e.target.value)}
+            >
+              {players.map(player => (
+                <MenuItem key={player._id} value={player._id}>
+                  {player.name}
+                </MenuItem>
+              ))}
+            </Select>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelPlayerSelection}>Cancel</Button>
+          <Button
+            onClick={handleConfirmPlayer}
+            disabled={!selectedPlayerId}
+            color="primary"
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
+};
+
+const capitalize = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+
+const getButtonColor = (event) => {
+  switch (event) {
+    case 'goal': case 'point': return 'primary';
+    case 'yellowCard': return 'warning';
+    case 'redCard': return 'error';
+    default: return 'secondary';
+  }
+};
+
+const getEventIcon = (event) => {
+  switch (event) {
+    case 'goal': return <SportsSoccerIcon />;
+    case 'point': return <EmojiEventsIcon />;
+    case 'yellowCard': return <WarningIcon />;
+    case 'redCard': return <DangerousIcon />;
+    case 'substitution': return <SwapHorizIcon />;
+    default: return null;
+  }
 };
 
 export default AdminControls;

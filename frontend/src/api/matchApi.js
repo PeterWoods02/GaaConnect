@@ -73,13 +73,13 @@ export const updateMatch = async (id, matchData) => {
     });
 
     if (!response.ok) {
-      handleError('updating match', 'Failed to update match');
+      throw new Error(`Failed to update match: ${response.statusText}`);
     }
 
     const data = await response.json();
     return data;
   } catch (error) {
-    handleError('updating match', error);
+    console.error('Error updating match:', error);
   }
 };
 

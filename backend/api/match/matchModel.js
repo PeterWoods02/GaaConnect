@@ -52,6 +52,17 @@ const matchSchema = new mongoose.Schema({
         of: String,  // can store player names or player IDs
         default: {}
       },
+      playerContributions: {  //store stats for individuals for set match
+        type: Map,
+        of: {
+            goals: { type: Number, default: 0 },
+            assists: { type: Number, default: 0 },
+            points: { type: Number, default: 0 },
+            yellowCards: { type: Number, default: 0 },
+            redCards: { type: Number, default: 0 },
+        },
+        default: {}
+    },
     createdAt: {
         type: Date,
         default: Date.now, 

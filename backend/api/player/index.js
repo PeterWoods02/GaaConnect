@@ -16,6 +16,22 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get player by ID
+router.get('/:id', async (req, res) => {
+  try {
+      const player = await Player.findById(req.params.id);
+      
+      if (!player) {
+          return res.status(404).json({ message: 'Player not found' });
+      }
+
+      res.status(200).json(player);
+  } catch (error) {
+      console.error('Error fetching player by ID:', error);
+      res.status(500).json({ message: 'Server error' });
+  }
+});
+
 
 // add player
 router.post('/', async (req, res) => {
