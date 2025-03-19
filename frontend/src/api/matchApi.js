@@ -24,6 +24,10 @@ export const getMatches = async () => {
 // Fetch a single match by ID
 export const getMatchById = async (id) => {
   console.log("Fetching match with ID:", id);  
+  if (!id) {
+    console.error('No match ID provided');
+    return; // Exit the function early if matchId is invalid
+  }
   try {
     const response = await fetch(`${BASE_URL}/${id}`);
     if (!response.ok) {

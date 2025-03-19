@@ -1,42 +1,39 @@
 import React, { useState, useEffect } from "react";
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel, Typography } from "@mui/material";
-import { getPlayers } from "../api/playersApi";
+import { getAllStatistics } from "../api/statsApi";
 
-const PlayersPage = () => {
-  const [players, setPlayers] = useState([]);
+const PlayersStatsPage = () => {
+  const [statistics, setStatistics] = useState([]);
   const [sortBy, setSortBy] = useState("total_score");
   const [sortOrder, setSortOrder] = useState("desc");
 
   useEffect(() => {
-    const fetchPlayers = async () => {
+    const fetchStatistics = async () => {
       try {
-        const data = await getPlayers();
-        setPlayers(data);
+        const data = await getAllStatistics();
+        setStatistics(data);
       } catch (error) {
-        console.error("Error fetching players:", error);
+        console.error("Error fetching statistics:", error);
       }
     };
-    fetchPlayers();
+    fetchStatistics();
   }, []);
 
-  // Sorting function
   const handleSort = (column) => {
     const isAsc = sortBy === column && sortOrder === "asc";
     setSortBy(column);
     setSortOrder(isAsc ? "desc" : "asc");
   };
 
-  // Calculate total score dynamically
-  const getTotalScore = (player) => {
-    const goals = player.statistics?.goals || 0;
-    const points = player.statistics?.points || 0;
+  const getTotalScore = (stat) => {
+    const goals = stat.goals || 0;
+    const points = stat.points || 0;
     return (goals * 3) + points;
   };
 
-  // Sort players dynamically
-  const sortedPlayers = [...players].sort((a, b) => {
-    const aValue = sortBy === "total_score" ? getTotalScore(a) : (a.statistics?.[sortBy] || 0);
-    const bValue = sortBy === "total_score" ? getTotalScore(b) : (b.statistics?.[sortBy] || 0);
+  const sortedStats = [...statistics].sort((a, b) => {
+    const aValue = sortBy === "total_score" ? getTotalScore(a) : (a[sortBy] || 0);
+    const bValue = sortBy === "total_score" ? getTotalScore(b) : (b[sortBy] || 0);
     return sortOrder === "asc" ? aValue - bValue : bValue - aValue;
   });
 
@@ -49,29 +46,29 @@ const PlayersPage = () => {
         <TableHead>
           <TableRow>
             <TableCell><strong>Name</strong></TableCell>
-            {["goals", "points", "minutes_played", "ratings", "cards", "total_score"].map((col) => (
+            {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards", "total_score"].map((col) => (
               <TableCell key={col} align="right">
                 <TableSortLabel
                   active={sortBy === col}
                   direction={sortBy === col ? sortOrder : "asc"}
                   onClick={() => handleSort(col)}
                 >
-                  {col === "total_score" ? "TOTAL SCORE" : col.replace("_", " ").toUpperCase()}
+                  {col === "total_score" ? "TOTAL SCORE" : col.replace(/([A-Z])/g, " $1").toUpperCase()}
                 </TableSortLabel>
               </TableCell>
             ))}
           </TableRow>
         </TableHead>
         <TableBody>
-          {sortedPlayers.map((player) => (
-            <TableRow key={player._id}>
-              <TableCell>{player.name}</TableCell>
-              {["goals", "points", "minutes_played", "ratings", "cards"].map((col) => (
+          {sortedStats.map((stat) => (
+            <TableRow key={stat._id}>
+              <TableCell>{stat.player?.name || "Unknown Player"}</TableCell>
+              {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards"].map((col) => (
                 <TableCell key={col} align="right">
-                  {player.statistics ? player.statistics[col] || 0 : 0}
+                  {stat[col] || 0}
                 </TableCell>
               ))}
-              <TableCell align="right"><strong>{getTotalScore(player)}</strong></TableCell>
+              <TableCell align="right"><strong>{getTotalScore(stat)}</strong></TableCell>
             </TableRow>
           ))}
         </TableBody>
@@ -80,4 +77,4 @@ const PlayersPage = () => {
   );
 };
 
-export default PlayersPage;
+export default PlayersStatsPage;

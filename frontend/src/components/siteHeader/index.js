@@ -58,6 +58,7 @@ const SiteHeader = () => {
             <div className="dropdown-menu">
               <Link to="/calendar">Calendar</Link>
               <Link to="/addFixture">Add Fixture</Link>
+              <Link to="/fanPage">Fan</Link>
             </div>
           )}
         </div>

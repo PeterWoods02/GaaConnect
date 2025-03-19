@@ -18,13 +18,20 @@ const PlayerSelectorDialog = ({ open, onClose, players, onPlayerSelect, loading 
         {loading ? (
           <CircularProgress />
         ) : (
-          <Select fullWidth value={selectedPlayer} onChange={(e) => setSelectedPlayer(e.target.value)}>
+          <Select 
+            fullWidth 
+            value={selectedPlayer ? selectedPlayer.id : ''} 
+            onChange={(e) => {
+              const selected = players.find(p => p._id === e.target.value);
+              setSelectedPlayer(selected); 
+            }}
+          >
             {players.map((player) => (
               <MenuItem key={player.id} value={player.id}>
                 {player.name}
               </MenuItem>
             ))}
-          </Select>
+      </Select>
         )}
       </DialogContent>
       <DialogActions>

@@ -12,7 +12,7 @@ const eventSchema = new mongoose.Schema({
         required: false, 
     },
     team: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.Mixed,
         ref: 'Team', 
         required: true,
     },

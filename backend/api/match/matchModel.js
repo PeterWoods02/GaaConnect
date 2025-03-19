@@ -52,7 +52,7 @@ const matchSchema = new mongoose.Schema({
         of: String,  // can store player names or player IDs
         default: {}
       },
-      playerContributions: {  //store stats for individuals for set match
+    playerContributions: {  //store stats for individuals for set match
         type: Map,
         of: {
             goals: { type: Number, default: 0 },
@@ -63,6 +63,16 @@ const matchSchema = new mongoose.Schema({
         },
         default: {}
     },
+    status: {
+        type: String,
+        enum: ['upcoming', 'live', 'halfTime', 'fullTime'],
+        default: 'upcoming'
+      },
+    
+      startTime: {
+        type: Number, // stored as Date.now() (using milliseconds)
+        default: null
+      },
     createdAt: {
         type: Date,
         default: Date.now, 

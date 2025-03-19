@@ -1,23 +1,25 @@
 import io from 'socket.io-client';
 
-// Initialize WebSocket connection
-const socket = io('http://localhost:8080');  
+let socket;
 
-// Listen for live updates like score and events
-socket.on('live-update', (updateData) => {
-  console.log('Live Update:', updateData);
-  // dispatch a  call a state setter here to update UI
-});
-
-// Listen for match events (goals, cards, etc.)
-socket.on('match-update', (actionData) => {
-  console.log('Admin action received:', actionData);
-  // Update the UI with new data (e.g., show goal celebrations)
-});
-
-// expose functions to send data from the frontend to the backend
-const sendAdminAction = (actionData) => {
-  socket.emit('admin-action', actionData);
+export const connectSocket = () => {
+  socket = io('http://localhost:8080');
 };
 
-export { sendAdminAction };
+export const sendAdminAction = (action) => {
+  if (!socket) return;
+  socket.emit('adminAction', action);
+};
+
+export const listenToMatchUpdates = (matchId, callback) => {
+  if (!socket) connectSocket();
+
+  socket.emit('joinMatchRoom', matchId);
+
+  socket.on('matchUpdate', callback);
+
+  return () => {
+    socket.emit('leaveMatchRoom', matchId);
+    socket.off('matchUpdate', callback);
+  };
+};

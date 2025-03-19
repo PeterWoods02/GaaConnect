@@ -3,6 +3,8 @@ import Match from './matchModel.js';
 import Team from '../team/teamModel.js';
 import Player from '../player/playerModel.js';
 import Statistics from '../statistics/statisticsModel.js';
+import mongoose from 'mongoose';
+import Event from '../event/eventModel.js'
 
 const router = express.Router();
 
@@ -73,9 +75,12 @@ router.post('/', async (req, res) => {
 // Update a match
 router.put('/:id', async (req, res) => {
     try {
-      const { matchTitle, date, location, opposition, score, results, statistics, team, admissionFee, status, player } = req.body;
+      const {
+        matchTitle, date, location, opposition, score,
+        results, statistics, team, admissionFee, status,
+        player, startTime 
+      } = req.body;
   
-      // If a player is provided, ensure it is valid
       if (player) {
         const existingPlayer = await Player.findById(player._id);
         if (!existingPlayer) {
@@ -85,7 +90,11 @@ router.put('/:id', async (req, res) => {
   
       const updatedMatch = await Match.findByIdAndUpdate(
         req.params.id,
-        { matchTitle, date, location, opposition, score, results, statistics, team, admissionFee, status, player },
+        {
+          matchTitle, date, location, opposition, score,
+          results, statistics, team, admissionFee, status,
+          player, startTime 
+        },
         { new: true }
       );
   
@@ -99,6 +108,7 @@ router.put('/:id', async (req, res) => {
       res.status(500).json({ message: 'Failed to update match' });
     }
   });
+  
   
 
 // Route to update or create team positions for a match
@@ -174,22 +184,84 @@ router.delete('/:id', async (req, res) => {
 // Start Match
 router.post('/:id/start', async (req, res) => {
     try {
-        const match = await Match.findById(req.params.id);
-
-        if (!match) {
-            return res.status(404).json({ message: 'Match not found' });
-        }
-
-        match.status = 'live';
-        match.currentTime = 0; // Reset the timer to 0 minutes
-        await match.save();
-
-        res.status(200).json(match);
+      const match = await Match.findById(req.params.id);
+  
+      if (!match) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+  
+      match.status = 'live';
+      match.startTime = Date.now();  
+      match.currentTime = 0;
+  
+      await match.save();
+  
+      res.status(200).json(match);
     } catch (error) {
-        console.error('Error starting match:', error);
-        res.status(500).json({ message: 'Failed to start match' });
+      console.error('Error starting match:', error);
+      res.status(500).json({ message: 'Failed to start match' });
     }
-});
+  });
+
+  router.post('/:id/half-time', async (req, res) => {
+    try {
+      const match = await Match.findById(req.params.id);
+  
+      if (!match) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+  
+      match.status = 'halfTime';
+      match.startTime = null; //pause timer  
+      await match.save();
+  
+      res.status(200).json(match);
+    } catch (error) {
+      console.error('Error pausing for half-time:', error);
+      res.status(500).json({ message: 'Failed to set half-time' });
+    }
+  });
+
+  router.post('/:id/second-half', async (req, res) => {
+    try {
+      const match = await Match.findById(req.params.id);
+  
+      if (!match) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+  
+      match.status = 'live';
+      match.startTime = Date.now(); 
+  
+      await match.save();
+  
+      res.status(200).json(match);
+    } catch (error) {
+      console.error('Error starting second half:', error);
+      res.status(500).json({ message: 'Failed to start second half' });
+    }
+  });
+  router.post('/:id/end', async (req, res) => {
+    try {
+      const match = await Match.findById(req.params.id);
+  
+      if (!match) {
+        return res.status(404).json({ message: 'Match not found' });
+      }
+  
+      match.status = 'fullTime';
+      match.startTime = null; 
+  
+      await match.save();
+  
+      res.status(200).json(match);
+    } catch (error) {
+      console.error('Error ending match:', error);
+      res.status(500).json({ message: 'Failed to end match' });
+    }
+  });
+  
+  
 
 // Update Score
 router.post('/:id/score', async (req, res) => {
@@ -218,56 +290,141 @@ router.post('/:id/score', async (req, res) => {
 });
 
 
-// Log Event (Goal, Card, Substitution)
 router.post('/:id/event', async (req, res) => {
-    const { type, team, playerId, minute, description, isGoal } = req.body; 
+    const { type, teamId, playerId, minute } = req.body;
+
+    if (teamId && !mongoose.Types.ObjectId.isValid(teamId)) {
+        return res.status(400).json({ message: 'Invalid team ID' });
+    }
+    if (playerId && !mongoose.Types.ObjectId.isValid(playerId)) {
+        return res.status(400).json({ message: 'Invalid player ID' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({ message: 'Invalid match ID' });
+    }
+
+    if (!type || minute === undefined) {
+        return res.status(400).json({ message: 'Missing required fields: type or minute' });
+    }
 
     try {
         const match = await Match.findById(req.params.id);
-        const player = await Player.findById(playerId).populate('statistics');
-
-        if (!match || !player) {
-            return res.status(404).json({ message: 'Match or player not found' });
+        if (!match) {
+            return res.status(404).json({ message: 'Match not found' });
         }
 
-        // Log the event (e.g., Goal, Card, etc.)
-        const event = { type, team, player: playerId, minute, description };
-        match.events.push(event);
-
-        // Update match score if it's a goal
-        if (isGoal) {
-            if (team === match.team._id.toString()) {
-                match.score.teamGoals += 1; 
-            } else {
-                match.score.oppositionGoals += 1; 
+        let player = null;
+        if (playerId) {
+            player = await Player.findById(playerId);
+            if (!player) {
+                return res.status(404).json({ message: 'Player not found' });
             }
-
-            // Update player contribution in this match
-            if (!match.playerContributions.has(playerId)) {
-                match.playerContributions.set(playerId, { goals: 0, points: 0 });
-            }
-
-            const playerContribution = match.playerContributions.get(playerId);
-            playerContribution.goals += 1;  
-            match.playerContributions.set(playerId, playerContribution); 
-
-            // Update the player's lifetime stats
-            player.statistics.goals += 1;
-            await player.statistics.save(); 
         }
 
-        await match.save(); // Save the match after the event
+        let team = null;
+        if (teamId) {
+            team = await Team.findById(teamId);
+            if (!team) {
+                return res.status(404).json({ message: 'Team not found' });
+            }
+        }
+
+        const event = new Event({
+            match: match._id,
+            player: player ? player._id : null,
+            team: teamId ? team._id : match.opposition,
+            type,
+            minute,
+        });
+
+        await event.save();
+
+        match.events.push(event._id);
+
+        if (!teamId && !playerId) {
+            if (type === 'goal') {
+                match.score.oppositionGoals += 1;
+            } else if (type === 'point') {
+                match.score.oppositionPoints += 1;
+            }
+        } else {
+            if (teamId && team && team._id.toString() === match.team.toString()) {
+                if (type === 'goal') {
+                    match.score.teamGoals += 1;
+                } else if (type === 'point') {
+                    match.score.teamPoints += 1;
+                }
+            } else if (team) {
+                if (type === 'goal') {
+                    match.score.oppositionGoals += 1;
+                } else if (type === 'point') {
+                    match.score.oppositionPoints += 1;
+                }
+            }
+        }
+
+        if (playerId && player) {
+            // Per match contributions
+            if (!match.playerContributions.has(player._id.toString())) {
+                match.playerContributions.set(player._id.toString(), {
+                    goals: 0,
+                    assists: 0,
+                    points: 0,
+                    yellowCards: 0,
+                    redCards: 0
+                });
+            }
+
+            const contribution = match.playerContributions.get(player._id.toString());
+
+            if (type === 'goal') contribution.goals += 1;
+            if (type === 'point') contribution.points += 1;
+            if (type === 'yellowCard') contribution.yellowCards += 1;
+            if (type === 'redCard') contribution.redCards += 1;
+
+            match.playerContributions.set(player._id.toString(), contribution);
+
+            // Global Player Stats
+            let playerStats = await Statistics.findOne({ player: playerId });
+
+            if (!playerStats) {
+                playerStats = new Statistics({
+                    player: playerId,
+                    goals: 0,
+                    points: 0,
+                    minutes_played: 0,
+                    ratings: 0,
+                    yellowCards: 0,
+                    redCards: 0
+                });
+            }
+
+            if (type === 'goal') playerStats.goals += 1;
+            if (type === 'point') playerStats.points += 1;
+            if (type === 'yellowCard') playerStats.yellowCards += 1;
+            if (type === 'redCard') playerStats.redCards += 1;
+
+            await playerStats.save();
+
+            if (!player.statistics) {
+                player.statistics = playerStats._id;
+                await player.save();
+            }
+        }
+
+        await match.save();
 
         res.status(200).json({
-            message: 'Event logged and stats updated successfully',
+            message: 'Event logged successfully',
             match,
-            playerStats: player.statistics
         });
+
     } catch (error) {
         console.error('Error logging event:', error);
         res.status(500).json({ message: 'Failed to log event' });
     }
 });
+
 
 
 
