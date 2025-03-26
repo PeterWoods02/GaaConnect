@@ -13,7 +13,8 @@ router.get('/', async (req, res) => {
     try {
         const matches = await Match.find()
             .populate('statistics')  
-            .populate('team')         
+            .populate('team')      
+            .populate('events')   
             
 
         res.status(200).json(matches);
@@ -478,6 +479,20 @@ router.post('/:id/end', async (req, res) => {
     }
 });
 
+router.get('/:id/events', async (req, res) => {
+    try {
+      const events = await Event.find({ match: req.params.id })
+        .populate('player', 'name')
+        .populate('team', 'name')
+        .sort({ minute: 1 }); 
+  
+      res.status(200).json(events);
+    } catch (error) {
+      console.error('Error fetching match events:', error);
+      res.status(500).json({ message: 'Failed to fetch match events' });
+    }
+  });
+  
 
 
 export default router;

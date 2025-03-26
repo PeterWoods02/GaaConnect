@@ -246,6 +246,21 @@ export const endMatch = async (id) => {
   }
 };
 
+export const getEventsForMatch = async (matchId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${matchId}/events`);
+    if (!response.ok) {
+      handleError('fetching match events', 'Failed to get events');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('fetching match events', error);
+  }
+};
+
+
 
 
 

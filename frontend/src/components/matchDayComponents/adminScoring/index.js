@@ -85,7 +85,7 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
   };
 
   const handleLogEvent = async (eventType, player, teamType) => {
-    const teamId = teamType === 'home' ? matchData.team : null;
+    const teamId = teamType === 'home' ? matchData.team?._id : null;
 
     const eventPayload = {
       type: eventType,

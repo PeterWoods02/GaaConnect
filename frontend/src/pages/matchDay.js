@@ -2,21 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { logEvent, getMatchById, updateMatch } from '../api/matchApi.js';
 import { sendAdminAction } from '../services/socketClient.js';
-import { Typography, Grid, Paper, Container, CircularProgress } from '@mui/material';
+import { Typography, Box, Grid, Paper, Container, CircularProgress } from '@mui/material';
 import Scoreboard from '../components/matchDayComponents/scoreboard/index.js';
 import LiveTimer from '../components/matchDayComponents/liveTimer/index.js';
 import AdminControls from '../components/matchDayComponents/adminScoring/index.js';
 import PlayerSelectorDialog from '../components/matchDayComponents/playerSelectorDialog/index.js';
 import { getPlayerById } from '../api/playersApi.js';
 import EventLog from '../components/matchDayComponents/eventLog';
-
+import { getEventsForMatch } from '../api/matchApi';
 
 const MatchPage = () => {
   const { id } = useParams();
 
   const [matchData, setMatchData] = useState(null);
   const [teamAPlayers, setTeamAPlayers] = useState([]);
-
+  const [events, setEvents] = useState([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gamePhase, setGamePhase] = useState(0); // 0: Pre, 1: 1st Half, 2: Half Time, 3: 2nd Half, 4: Full Time
 
@@ -31,25 +31,21 @@ const MatchPage = () => {
       try {
         const match = await getMatchById(id);
         setMatchData(match);
-  
-        let time = 0;
-  
-        if (match.startTime && (match.status === 'live')) {
+
+        if (match.startTime && match.status === 'live') {
           const now = Date.now();
           const timeDiffSeconds = Math.floor((now - match.startTime) / 1000);
-          time = timeDiffSeconds;
-  
-          // Start  timer
+          setElapsedTime(timeDiffSeconds);
           startTimer();
         }
-  
-        setElapsedTime(time);
+
         setGamePhase(statusToPhase(match.status));
-  
-        // Load team/player data (existing)
-        let players = match.players || {};
-        const playerIds = Array.isArray(players) ? players : Object.values(players);
-  
+
+        const players = match.players || {};
+        const playerIds = Array.isArray(players)
+          ? players
+          : Object.values(players);
+
         const playerDetails = await Promise.all(
           playerIds.map(async (playerId) => {
             try {
@@ -60,13 +56,16 @@ const MatchPage = () => {
             }
           })
         );
-  
+
         setTeamAPlayers(playerDetails.filter(Boolean));
+
+        const fetchedEvents = await getEventsForMatch(id);
+        setEvents(fetchedEvents);
       } catch (error) {
         console.error('Error fetching match details:', error);
       }
     };
-  
+
     fetchMatchDetails();
   }, [id]);
   
@@ -85,7 +84,7 @@ const MatchPage = () => {
   const startTimer = () => {
     if (!timerRef.current) {
       timerRef.current = setInterval(() => {
-        setElapsedTime(prevTime => prevTime + 1);
+        setElapsedTime((prev) => prev + 1);
       }, 1000);
       sendAdminAction({ id, type: 'timerStart' });
     }
@@ -144,13 +143,12 @@ const MatchPage = () => {
         break;
     }
 
-    const updatePayload = { status: statusUpdate };
-    if (startTime) updatePayload.startTime = startTime;
+    const payload = { status: statusUpdate };
+    if (startTime) payload.startTime = startTime;
 
     try {
-      const updatedMatch = await updateMatch(id, updatePayload);
-      setMatchData(updatedMatch);
-
+      const updated = await updateMatch(id, payload);
+      setMatchData(updated);
       sendAdminAction({ id, type: 'statusUpdate', status: statusUpdate });
     } catch (error) {
       console.error('Failed to update match status:', error);
@@ -159,7 +157,7 @@ const MatchPage = () => {
 
   // Handle Admin Event Log 
   const handleAdminLogEvent = (team, eventType) => {
-    if (team === 'teamA' && (eventType === 'goal' || eventType === 'point')) {
+    if (team === 'teamA' && ['goal', 'point'].includes(eventType)) {
       setPendingEvent({ team, eventType });
       setShowPlayerSelector(true);
     } else {
@@ -169,24 +167,28 @@ const MatchPage = () => {
 
   const handleLogEvent = async (eventType, eventData) => {
     try {
-      const updatedEvents = [...matchData.events, {
+      // Send event to backend
+      await logEvent(id, {
         type: eventType,
-        ...eventData,
-        time: elapsedTime
-      }];
-
-      const updatedMatch = await updateMatch(id, {
-        events: updatedEvents
+        teamId: eventData.team === 'teamA' ? matchData.team : null,
+        playerId: eventData.player?._id || eventData.player || null,
+        minute: elapsedTime,
       });
 
+      // Refresh match + events
+      const [updatedMatch, updatedEvents] = await Promise.all([
+        getMatchById(id),
+        getEventsForMatch(id),
+      ]);
       setMatchData(updatedMatch);
+      setEvents(updatedEvents);
 
       sendAdminAction({
         id,
         type: eventType,
         time: elapsedTime,
-        team: eventData?.team,
-        player: eventData?.player?._id || eventData?.player || "NO_PLAYER_ID"
+        team: eventData.team,
+        player: eventData.player?._id || eventData.player || 'NO_PLAYER_ID',
       });
     } catch (error) {
       console.error('Failed to log event:', error);
@@ -199,7 +201,7 @@ const MatchPage = () => {
     if (pendingEvent) {
       handleLogEvent(pendingEvent.eventType, {
         team: pendingEvent.team,
-        player: player?._id || player || "NO_PLAYER_ID"
+        player: player,
       });
 
       setPendingEvent(null);
@@ -227,7 +229,7 @@ const MatchPage = () => {
         {/* Scoreboard */}
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 3 }}>
-          <Scoreboard
+            <Scoreboard
               matchId={id}
               teamA={{
                 goals: matchData.score.teamGoals,
@@ -252,15 +254,15 @@ const MatchPage = () => {
         {/* Admin Controls */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
-          <AdminControls
-            matchId={id}
-            matchData={matchData}
-            setMatchData={setMatchData}
-            onLogEvent={handleAdminLogEvent}
-            gamePhase={gamePhase}
-            elapsedTime={elapsedTime}
-            onPhaseChange={handlePhaseChange}
-          />
+            <AdminControls
+              matchId={id}
+              matchData={matchData}
+              setMatchData={setMatchData}
+              onLogEvent={handleAdminLogEvent}
+              gamePhase={gamePhase}
+              elapsedTime={elapsedTime}
+              onPhaseChange={handlePhaseChange}
+            />
 
 
             <PlayerSelectorDialog
@@ -277,7 +279,7 @@ const MatchPage = () => {
             <Typography variant="h5" gutterBottom>
               Match Events
             </Typography>
-            <EventLog events={matchData.events} />
+            <EventLog events={events} />
           </Paper>
         </Grid>
       </Grid>
