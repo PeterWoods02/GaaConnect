@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Select, MenuItem, FormControl, InputLabel, Checkbox, ListItemText } from '@mui/material';
-import { getManagers } from '../../api/managersApi'; 
+import { getUsersByRole } from '../../api/usersApi';
+
 
 const ManagerSelect = ({ value, onChange }) => {
   const [managers, setManagers] = useState([]);
@@ -9,7 +10,7 @@ const ManagerSelect = ({ value, onChange }) => {
   useEffect(() => {
     const fetchManagers = async () => {
       try {
-        const managerList = await getManagers();  
+        const managerList = await getUsersByRole('manager');
         setManagers(managerList);  
       } catch (error) {
         console.error('Error fetching managers:', error);

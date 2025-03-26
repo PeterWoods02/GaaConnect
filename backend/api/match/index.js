@@ -1,7 +1,7 @@
 import express from 'express';
 import Match from './matchModel.js';
 import Team from '../team/teamModel.js';
-import Player from '../player/playerModel.js';
+import User from '../user/userModel.js';
 import Statistics from '../statistics/statisticsModel.js';
 import mongoose from 'mongoose';
 import Event from '../event/eventModel.js'
@@ -83,7 +83,7 @@ router.put('/:id', async (req, res) => {
       } = req.body;
   
       if (player) {
-        const existingPlayer = await Player.findById(player._id);
+        const existingPlayer = await User.findById(playerId);
         if (!existingPlayer) {
           return res.status(400).json({ message: 'Invalid player reference' });
         }
@@ -316,7 +316,7 @@ router.post('/:id/event', async (req, res) => {
 
         let player = null;
         if (playerId) {
-            player = await Player.findById(playerId);
+           player = await User.findById(playerId);
             if (!player) {
                 return res.status(404).json({ message: 'Player not found' });
             }

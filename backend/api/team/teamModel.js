@@ -20,12 +20,12 @@ const teamSchema = new mongoose.Schema({
     },
     players: [{  
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Player',  // Reference to Player model
+      ref: 'User',  // Reference to Player model
       required: false 
     }],
-    managementTeam: [{
+    manager: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Management',  // ref management model
+      ref: 'User',  // ref management model
       required: false  // team must have one from management change later
     }]
   });

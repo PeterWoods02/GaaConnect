@@ -1,9 +1,9 @@
 import express from 'express';
+import Event from '../event/eventModel.js';
+import User from '../user/userModel.js';
 import Match from '../match/matchModel.js';
 import Team from '../team/teamModel.js';
-import Player from '../player/playerModel.js';
 import mongoose from 'mongoose';
-import Event from '../event/eventModel.js'
 
 const router = express.Router();
 
@@ -11,10 +11,9 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const events = await Event.find()
-    .select('type minute team player') 
-    .populate('player', 'name')       
-    .lean();   
-
+      .select('type minute team player')
+      .populate('player', 'name')
+      .lean();
 
     res.status(200).json(events);
   } catch (error) {
@@ -22,9 +21,5 @@ router.get('/', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch events' });
   }
 });
-
-
-            
-            
 
 export default router;

@@ -1,6 +1,6 @@
 import express from 'express';
 import Team from './teamModel.js';  
-import Player from '../player/playerModel.js'; 
+import User from '../user/userModel.js';
 
 const router = express.Router();
 
@@ -139,9 +139,9 @@ router.post('/:id/players', async (req, res) => {
     }
 
     // Check if the player exists
-    const player = await Player.findById(playerId);
-    if (!player) {
-      return res.status(404).json({ message: 'Player not found' });
+    const player = await User.findById(playerId);
+    if (!player || player.role !== 'player') {
+      return res.status(400).json({ message: 'Invalid player ID or role' });
     }
 
     // Check if the player is already in the team

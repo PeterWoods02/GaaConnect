@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 import mongoose from 'mongoose';
-import Management from '../api/management/managementModel.js';
+import Management from '../api/user/userModel.js';
 import staff from '../initialise-dev/management.js';  
 import teams from '../initialise-dev/team.js'; 
 import Team from '../api/team/teamModel.js';

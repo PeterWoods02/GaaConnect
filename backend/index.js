@@ -2,11 +2,10 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import http from 'http'; 
-import managementRouter from './api/management/index.js';
 import teamRouter from './api/team/index.js';
 import statisticsRouter from './api/statistics/index.js';
 import matchRouter from './api/match/index.js';
-import playerRouter from './api/player/index.js';
+import userRouter from './api/user/index.js';
 import eventRouter from './api/event/index.js';
 import './db/index.js';
 import { Server } from 'socket.io';
@@ -62,11 +61,10 @@ io.on('connection', (socket) => {
 app.use(cors());
 app.use(express.json());
 
-app.use('/api/management', managementRouter);
+app.use('/api/users', userRouter);
 app.use('/api/team', teamRouter);
 app.use('/api/statistics', statisticsRouter);
 app.use('/api/match', matchRouter);
-app.use('/api/player', playerRouter);
 app.use('/api/event', eventRouter);
 
 server.listen(port, () => {
