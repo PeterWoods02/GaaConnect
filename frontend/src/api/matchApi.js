@@ -184,6 +184,25 @@ export const updateScore = async (id, scoreData) => {
   }
 };
 
+// Delete an event from a match
+export const deleteEvent = async (matchId, eventId) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${matchId}/event/${eventId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      handleError('deleting event', 'Failed to delete event');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('deleting event', error);
+  }
+};
+
+
 // Log an event (goal, card, substitution)
 export const logEvent = async (id, eventData) => {
   try {

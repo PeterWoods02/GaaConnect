@@ -28,10 +28,23 @@ const io = new Server(server, {
   },
 });
 
+app.set('io', io);
+
 // WebSocket connection setup
 io.on('connection', (socket) => {
   console.log('New WebSocket connection established');
 
+  socket.on('joinMatchRoom', (matchId) => {
+    console.log(`Socket ${socket.id} joined room for match ${matchId}`);
+    socket.join(matchId);
+  });
+
+  // Optional: leave room if needed
+  socket.on('leaveMatchRoom', (matchId) => {
+    console.log(`Socket ${socket.id} left room for match ${matchId}`);
+    socket.leave(matchId);
+  });
+  
   // Listen for admin actions (like goal, card, substitution)
   socket.on('admin-action', (actionData) => {
     console.log('Admin action received:', actionData);

@@ -16,10 +16,20 @@ export const listenToMatchUpdates = (matchId, callback) => {
 
   socket.emit('joinMatchRoom', matchId);
 
-  socket.on('matchUpdate', callback);
+  const wrappedCallback = (action) => {
+    if (typeof action === 'string') {
+      callback({ type: action });
+    } else if (action?.type) {
+      callback(action);
+    }
+  };
+
+  socket.on('matchUpdate', wrappedCallback);
+  socket.on('eventUpdate', wrappedCallback);
 
   return () => {
     socket.emit('leaveMatchRoom', matchId);
-    socket.off('matchUpdate', callback);
+    socket.off('matchUpdate', wrappedCallback);
+    socket.off('eventUpdate', wrappedCallback);
   };
 };

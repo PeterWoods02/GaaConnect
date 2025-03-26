@@ -3,7 +3,7 @@ import { Typography } from '@mui/material';
 import { getMatchById } from '../../../api/matchApi';
 
 
-const Scoreboard = ({ matchId, teamA, teamB }) => {
+const Scoreboard = ({ matchId, teamA, teamB, refreshTrigger }) => {
   const [score, setScore] = useState({
     teamGoals: 0,
     teamPoints: 0,
@@ -28,7 +28,7 @@ const Scoreboard = ({ matchId, teamA, teamB }) => {
     fetchMatchData();
     const intervalId = setInterval(fetchMatchData, 30000);
     return () => clearInterval(intervalId);
-  }, [matchId]);
+  }, [matchId, refreshTrigger]);
 
   // Prefer props over local state if present
   const displayScore = {

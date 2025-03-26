@@ -10,6 +10,8 @@ import PlayerSelectorDialog from '../components/matchDayComponents/playerSelecto
 import { getPlayerById } from '../api/playersApi.js';
 import EventLog from '../components/matchDayComponents/eventLog';
 import { getEventsForMatch } from '../api/matchApi';
+import { listenToMatchUpdates } from '../services/socketClient';
+
 
 const MatchPage = () => {
   const { id } = useParams();
@@ -19,6 +21,7 @@ const MatchPage = () => {
   const [events, setEvents] = useState([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gamePhase, setGamePhase] = useState(0); // 0: Pre, 1: 1st Half, 2: Half Time, 3: 2nd Half, 4: Full Time
+  const [scoreRefreshKey, setScoreRefreshKey] = useState(0);
 
   const timerRef = useRef(null);
 
@@ -31,21 +34,21 @@ const MatchPage = () => {
       try {
         const match = await getMatchById(id);
         setMatchData(match);
-
+  
         if (match.startTime && match.status === 'live') {
           const now = Date.now();
           const timeDiffSeconds = Math.floor((now - match.startTime) / 1000);
           setElapsedTime(timeDiffSeconds);
           startTimer();
         }
-
+  
         setGamePhase(statusToPhase(match.status));
-
+  
         const players = match.players || {};
         const playerIds = Array.isArray(players)
           ? players
           : Object.values(players);
-
+  
         const playerDetails = await Promise.all(
           playerIds.map(async (playerId) => {
             try {
@@ -56,19 +59,48 @@ const MatchPage = () => {
             }
           })
         );
-
+  
         setTeamAPlayers(playerDetails.filter(Boolean));
-
+  
         const fetchedEvents = await getEventsForMatch(id);
         setEvents(fetchedEvents);
       } catch (error) {
         console.error('Error fetching match details:', error);
       }
     };
-
+  
+    const fetchAndSetEvents = async () => {
+      try {
+        const updatedEvents = await getEventsForMatch(id);
+        setEvents(updatedEvents);
+      } catch (err) {
+        console.error('Error refreshing events:', err);
+      }
+    };
+  
     fetchMatchDetails();
+  
+    const unsubscribe = listenToMatchUpdates(id, (action) => {
+      if (action === 'eventUpdate' || action.type === 'eventUpdate') {
+        fetchAndSetEvents();
+        getMatchById(id).then(setMatchData);
+        setScoreRefreshKey(prev => prev + 1); 
+      }
+    });
+    
+  
+    return () => unsubscribe();
   }, [id]);
   
+  
+  const fetchAndSetEvents = async () => {
+    try {
+      const updatedEvents = await getEventsForMatch(id);
+      setEvents(updatedEvents);
+    } catch (err) {
+      console.error('Error refreshing events:', err);
+    }
+  };
 
   const statusToPhase = (status) => {
     switch (status) {
@@ -240,17 +272,19 @@ const MatchPage = () => {
         {/* Scoreboard */}
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <Scoreboard
-              matchId={id}
-              teamA={{
-                goals: matchData.score.teamGoals,
-                points: matchData.score.teamPoints
-              }}
-              teamB={{
-                goals: matchData.score.oppositionGoals,
-                points: matchData.score.oppositionPoints
-              }}
-            />
+          <Scoreboard
+            matchId={id}
+            teamA={{
+              goals: matchData.score.teamGoals,
+              points: matchData.score.teamPoints
+            }}
+            teamB={{
+              goals: matchData.score.oppositionGoals,
+              points: matchData.score.oppositionPoints
+            }}
+            refreshTrigger={scoreRefreshKey}
+          />
+
 
           </Paper>
         </Grid>
@@ -290,7 +324,7 @@ const MatchPage = () => {
             <Typography variant="h5" gutterBottom>
               Match Events
             </Typography>
-            <EventLog events={events} />
+            <EventLog events={events} matchId={id} onUpdate={setEvents} />
           </Paper>
         </Grid>
       </Grid>

@@ -415,6 +415,10 @@ router.post('/:id/event', async (req, res) => {
 
         await match.save();
 
+        //  socket 
+        const io = req.app.get('io');
+        io.to(match._id.toString()).emit('matchUpdate', { type: 'eventUpdate' });
+
         res.status(200).json({
             message: 'Event logged successfully',
             match,
@@ -426,7 +430,86 @@ router.post('/:id/event', async (req, res) => {
     }
 });
 
+//Undo event
+router.delete('/:matchId/event/:eventId', async (req, res) => {
+    const { matchId, eventId } = req.params;
+  
+    if (!mongoose.Types.ObjectId.isValid(matchId) || !mongoose.Types.ObjectId.isValid(eventId)) {
+      return res.status(400).json({ message: 'Invalid match or event ID' });
+    }
+  
+    try {
+      const match = await Match.findById(matchId);
+      const event = await Event.findById(eventId);
+  
+      if (!match || !event) {
+        return res.status(404).json({ message: 'Match or Event not found' });
+      }
+  
+      // Reverse score updates
+      if (event.type === 'goal') {
+        if (event.team.toString() === match.team.toString()) {
+          match.score.teamGoals = Math.max(0, match.score.teamGoals - 1);
+        } else {
+          match.score.oppositionGoals = Math.max(0, match.score.oppositionGoals - 1);
+        }
+      } else if (event.type === 'point') {
+        if (event.team.toString() === match.team.toString()) {
+          match.score.teamPoints = Math.max(0, match.score.teamPoints - 1);
+        } else {
+          match.score.oppositionPoints = Math.max(0, match.score.oppositionPoints - 1);
+        }
+      }
+      
+  
+      // Reverse player contribution
+      const playerId = event.player?.toString();
+      if (playerId && match.playerContributions.has(playerId)) {
+        const contribution = match.playerContributions.get(playerId);
+  
+        if (event.type === 'goal') contribution.goals -= 1;
+        if (event.type === 'point') contribution.points -= 1;
+        if (event.type === 'yellowCard') contribution.yellowCards -= 1;
+        if (event.type === 'redCard') contribution.redCards -= 1;
+  
+        // Remove entry if all values are zero
+        const allZero = Object.values(contribution).every(val => val === 0);
+        if (allZero) {
+          match.playerContributions.delete(playerId);
+        } else {
+          match.playerContributions.set(playerId, contribution);
+        }
+      }
+  
+      // update player stats model 
+      if (playerId) {
+        const playerStats = await Statistics.findOne({ player: playerId });
+      
+        if (playerStats) {
+          if (event.type === 'goal') playerStats.goals -= 1;
+          if (event.type === 'point') playerStats.points -= 1;
+          if (event.type === 'yellowCard') playerStats.yellowCards -= 1;
+          if (event.type === 'redCard') playerStats.redCards -= 1;
+      
+          await playerStats.save();
+        }
+      }
+      
+      // Remove event
+      await Event.findByIdAndDelete(eventId);
+      match.events.pull(eventId);
+  
+      await match.save();
+      const io = req.app.get('io');
+      io.to(match._id.toString()).emit('matchUpdate', { type: 'eventUpdate' });
 
+      return res.status(200).json({ message: 'Event deleted successfully', match });
+    } catch (err) {
+      console.error('Error deleting event:', err);
+      res.status(500).json({ message: 'Failed to delete event' });
+    }
+  });
+  
 
 
 // Update Statistics
