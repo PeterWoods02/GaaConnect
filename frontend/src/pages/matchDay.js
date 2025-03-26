@@ -81,14 +81,25 @@ const MatchPage = () => {
   };
 
   // timer Management
+  const MAX_GAME_TIME = 90 * 60; // 90 minutes and stop timer
+
   const startTimer = () => {
     if (!timerRef.current) {
       timerRef.current = setInterval(() => {
-        setElapsedTime((prev) => prev + 1);
+        setElapsedTime((prev) => {
+          if (prev >= MAX_GAME_TIME) {
+            clearInterval(timerRef.current);
+            timerRef.current = null;
+            sendAdminAction({ id, type: 'timerStop' }); 
+            return prev;
+          }
+          return prev + 1;
+        });
       }, 1000);
       sendAdminAction({ id, type: 'timerStart' });
     }
   };
+
 
   const pauseTimer = () => {
     clearInterval(timerRef.current);

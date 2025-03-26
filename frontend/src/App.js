@@ -14,6 +14,7 @@ import ManageTeams from './pages/manageTeams.js';
 import PlayerStats from './pages/playerStats.js';
 import DisplayTeam from './pages/displayTeam.js';
 import FanPage from './pages/fanMatchPage.js';
+import FanScorePage from './pages/fanScorePage.js';
 import SiteHeader from './components/siteHeader/index.js';
 
 
@@ -30,7 +31,8 @@ const App = () => {
           <Route path="/calendar" element={<Calendar />}/>
           <Route path="/manageTeams/:teamId" element={<ManageTeams />}/>
           <Route path="/selectTeam" element={<SelectTeam />} />
-          <Route path="/fanPage" element={<FanPage />} />
+          <Route path="/fanPage/match/:matchId" element={<FanPage />} />
+          <Route path="/fanScorePage" element={<FanScorePage />} />
           <Route path="/selectMatch" element={<SelectMatch />} />
           <Route path="/playerManagement/:teamId" element={<PlayerManagement/>} />
           <Route path="/match/:id" element={<MatchDetails />}/>

@@ -1,23 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getMatchById } from '../api/matchApi.js';
 import { listenToMatchUpdates } from '../services/socketClient.js';
-import { Typography, Grid, Paper, Container, CircularProgress } from '@mui/material';
+import { Typography, Grid, Paper, Container, CircularProgress, Button } from '@mui/material';
 import LiveTimer from '../components/matchDayComponents/liveTimer/index.js';
 import Scoreboard from '../components/matchDayComponents/scoreboard/index.js';
 import EventLog from '../components/matchDayComponents/eventLog/index.js';
 
 const FanMatchPage = () => {
-  const { id } = useParams();
+  const { matchId } = useParams();
   const [matchData, setMatchData] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gamePhase, setGamePhase] = useState(0);
   const [events, setEvents] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const match = await getMatchById(id);
+        const match = await getMatchById(matchId);
         setMatchData(match);
         setEvents(match.events || []);
         setGamePhase(statusToPhase(match.status));
@@ -29,7 +30,7 @@ const FanMatchPage = () => {
 
     fetchInitialData();
 
-    const unsubscribe = listenToMatchUpdates(id, (action) => {
+    const unsubscribe = listenToMatchUpdates(matchId, (action) => {
       switch (action.type) {
         case 'timerUpdate':
           setElapsedTime(action.elapsedTime);
@@ -50,7 +51,7 @@ const FanMatchPage = () => {
     });
 
     return () => unsubscribe();
-  }, [id]);
+  }, [matchId]);
 
   const statusToPhase = (status) => {
     switch (status) {
@@ -78,6 +79,26 @@ const FanMatchPage = () => {
 
   return (
     <Container>
+      <Button
+        onClick={() => navigate('/fanScorePage')}
+        sx={{
+          mt: 2,
+          mb: 2,
+          backgroundColor: '#00587c',
+          color: '#fff',
+          padding: '10px 20px',
+          fontSize: '16px',
+          borderRadius: '6px',
+          textTransform: 'none',
+          '&:hover': {
+            backgroundColor: '#004466',
+          },
+        }}
+      >
+        ← Back to Matches
+      </Button>
+
+
       <Typography variant="h3" align="center" gutterBottom>
         {matchData.matchTitle}
       </Typography>
@@ -89,7 +110,17 @@ const FanMatchPage = () => {
         {/* Scoreboard */}
         <Grid item xs={12} md={6}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <Scoreboard matchId={id} teamA={matchData.score.teamA} teamB={matchData.score.teamB} />
+            <Scoreboard
+              matchId={matchId}
+              teamA={{
+                goals: matchData.score.teamGoals,
+                points: matchData.score.teamPoints
+              }}
+              teamB={{
+                goals: matchData.score.oppositionGoals,
+                points: matchData.score.oppositionPoints
+              }}
+            />
           </Paper>
         </Grid>
 
