@@ -9,7 +9,7 @@ router.get('/', async (req, res) => {
   try {
     const teams = await Team.find()
       .populate('players') // Added players
-      .populate('managementTeam'); // Populate with managers associated
+      .populate('manager'); // Populate with managers associated
 
     res.status(200).json(teams); 
   } catch (error) {
@@ -23,7 +23,7 @@ router.get('/:id', async (req, res) => {
   try {
     const team = await Team.findById(req.params.id)
       .populate('players') 
-      .populate('managementTeam');
+      .populate('manager');
 
     if (!team) {
       return res.status(404).json({ message: 'Team not found' });

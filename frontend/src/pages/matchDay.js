@@ -7,11 +7,10 @@ import Scoreboard from '../components/matchDayComponents/scoreboard/index.js';
 import LiveTimer from '../components/matchDayComponents/liveTimer/index.js';
 import AdminControls from '../components/matchDayComponents/adminScoring/index.js';
 import PlayerSelectorDialog from '../components/matchDayComponents/playerSelectorDialog/index.js';
-import { getPlayerById } from '../api/playersApi.js';
 import EventLog from '../components/matchDayComponents/eventLog';
 import { getEventsForMatch } from '../api/matchApi';
 import { listenToMatchUpdates } from '../services/socketClient';
-
+import { getUserById } from '../api/usersApi.js';
 
 const MatchPage = () => {
   const { id } = useParams();
@@ -52,7 +51,7 @@ const MatchPage = () => {
         const playerDetails = await Promise.all(
           playerIds.map(async (playerId) => {
             try {
-              return await getPlayerById(playerId);
+              return await getUserById(playerId);
             } catch (error) {
               console.error(`Error fetching player with ID ${playerId}:`, error);
               return null;

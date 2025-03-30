@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createPlayer } from '../api/playersApi.js'; 
+import { createPlayer } from '../api/usersApi.js';
 import PlayerForm from '../components/playerForm'; 
 import SnackbarAlert from '../components/snackbarAlert/index.js'; 
 
@@ -14,7 +14,7 @@ const AddPlayer = () => {
   const handleCreatePlayer = async (playerData) => {
     try {
       console.log('Sending player data:', playerData);
-      await createPlayer(playerData); 
+      await createPlayer(playerData);
       setSnackbarMessage('Player created successfully!'); 
       setSnackbarSeverity('success'); 
       setOpenSnackbar(true); 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent, Typography, List, ListItem, ListItemText, Button } from "@mui/material";
-import { getPlayers, deletePlayer } from "../../../api/playersApi.js"; 
+import { getUsers, deleteUser } from "../../../api/usersApi.js";
+ 
 
 const PlayerManagement = () => {
   const [players, setPlayers] = useState([]);
@@ -9,8 +10,9 @@ const PlayerManagement = () => {
     // Fetch players from the API
     const fetchPlayers = async () => {
       try {
-        const data = await getPlayers(); // fetch players from API
-        setPlayers(data);
+        const data = await getUsers();
+        const filtered = data.filter(user => user.role === 'player');
+        setPlayers(filtered);
       } catch (error) {
         console.error("Error fetching players:", error);
       }
@@ -36,11 +38,11 @@ const PlayerManagement = () => {
         </Typography>
         <List>
           {players.map((player) => (
-            <ListItem key={player.id} secondaryAction={
+            <ListItem key={player._id} secondaryAction={
               <Button
                 variant="contained"
                 color="error"
-                onClick={() => handleRemovePlayer(player.id)} // trigger removal
+                onClick={() => handleRemovePlayer(player._id)} // trigger removal
               >
                 Remove
               </Button>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, Typography, Grid } from "@mui/material";
 import { addPlayerToTeam, removePlayerFromTeam, getTeamById } from "../api/teamsApi";
-import { getPlayers } from "../api/playersApi";
+import { getAllUsers } from "../api/usersApi";
 import { useParams } from "react-router-dom";
 import PlayerList from "../components/playerManagement/playerList/index.js";
 
@@ -9,11 +9,13 @@ const PlayerManagementPage = () => {
   const [teamPlayers, setTeamPlayers] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
   const { teamId } = useParams();
+  const [allUsers, setAllUsers] = useState([]);
+
 
   useEffect(() => {
     const fetchPlayers = async () => {
       try {
-        const allPlayers = await getPlayers();
+        const allUsers = await getAllUsers();
         const teamData = await getTeamById(teamId);
 
         if (!teamData || !teamData.players) {
@@ -22,9 +24,11 @@ const PlayerManagementPage = () => {
         }
 
         const teamPlayerIds = teamData.players.map((player) => player._id);
-        setTeamPlayers(teamData.players);
+        const allPlayers = allUsers.filter(user => user.role === "player");
         setAvailablePlayers(allPlayers.filter((player) => !teamPlayerIds.includes(player._id)));
-      } catch (error) {
+
+        setTeamPlayers(teamData.players);
+        } catch (error) {
         console.error("Error fetching players:", error);
       }
     };

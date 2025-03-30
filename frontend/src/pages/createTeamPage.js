@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getPlayers } from '../api/playersApi.js'; 
+import { getPlayers } from '../api/usersApi.js';
 import ListPlayersForTeam from '../components/listPlayersForTeam/index.js';
 import Pitch from '../components/pitch/index.js'; 
 import { DndProvider } from 'react-dnd';

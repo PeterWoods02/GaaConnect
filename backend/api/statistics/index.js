@@ -23,7 +23,8 @@ router.get('/:id', async (req, res) => {
     }
 
     try {
-        const statistics = await Statistics.findById(id).populate('player');
+        const statistics = await Statistics.findById(id).populate({ path: 'player', model: 'User' });
+
 
         if (!statistics) {
             return res.status(404).json({ message: 'Statistics not found' });
@@ -46,7 +47,8 @@ router.get('/player/:playerId', async (req, res) => {
     }
 
     try {
-        const statistics = await Statistics.findOne({ player: playerId }).populate('player');
+        const statistics = await Statistics.findById(id).populate({ path: 'player', model: 'User' });
+
 
         if (!statistics) {
             return res.status(404).json({ message: 'Statistics for player not found' });

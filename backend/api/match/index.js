@@ -565,7 +565,7 @@ router.post('/:id/end', async (req, res) => {
 router.get('/:id/events', async (req, res) => {
     try {
       const events = await Event.find({ match: req.params.id })
-        .populate('player', 'name')
+        .populate('player')
         .populate('team', 'name')
         .sort({ minute: 1 }); 
   

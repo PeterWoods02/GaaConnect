@@ -7,7 +7,7 @@ import DangerousIcon from '@mui/icons-material/Dangerous';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 
 import { getTeamForMatch, logEvent, getMatchById } from '../../../api/matchApi';
-import { getPlayerById } from '../../../api/playersApi';
+import { getUserById } from '../../../api/usersApi';
 import { sendAdminAction } from '../../../services/socketClient';
 
 const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTime, onPhaseChange }) => {
@@ -74,7 +74,7 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
       const teamData = await getTeamForMatch(matchId);
       const playerIds = Object.values(teamData);
       const playerDetails = await Promise.all(
-        playerIds.map(id => getPlayerById(id))
+        playerIds.map(id => getUserById(id))
       );
       setPlayers(playerDetails.filter(Boolean));
     } catch (error) {

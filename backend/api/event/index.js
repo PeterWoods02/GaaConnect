@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
   try {
     const events = await Event.find()
       .select('type minute team player')
-      .populate('player', 'name')
+      .populate('player')
       .lean();
 
     res.status(200).json(events);
