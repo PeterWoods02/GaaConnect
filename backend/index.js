@@ -68,6 +68,7 @@ app.use('/api/statistics', statisticsRouter);
 app.use('/api/match', matchRouter);
 app.use('/api/event', eventRouter);
 app.use('/api/auth', authRoutes);
+app.use('/uploads', express.static('public/uploads'));
 
 server.listen(port, () => {
     console.info(`Server running at ${port}`);

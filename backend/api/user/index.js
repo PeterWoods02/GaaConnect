@@ -1,5 +1,17 @@
 import express from 'express';
 import User from './userModel.js';
+import multer from 'multer';
+import path from 'path';
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'public/uploads/');
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 const router = express.Router();
 
@@ -97,6 +109,30 @@ router.get('/players', async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch players' });
   }
 });
+
+// Upload profile picture
+router.patch('/:id/picture', upload.single('profilePicture'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const userId = req.params.id;
+    const filePath = `/uploads/${req.file.filename}`;
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { profilePicture: filePath },
+      { new: true }
+    );
+
+    res.json(user);
+  } catch (err) {
+    console.error('Error uploading profile picture:', err);
+    res.status(500).json({ message: 'Failed to upload profile picture' });
+  }
+});
+
 
 
 export default router;

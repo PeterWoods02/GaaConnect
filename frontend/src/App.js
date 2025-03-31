@@ -16,6 +16,7 @@ import DisplayTeam from './pages/displayTeam.js';
 import FanPage from './pages/fanMatchPage.js';
 import FanScorePage from './pages/fanScorePage.js';
 import LoginPage from './pages/loginPage.js';
+import ProfilePage from './pages/profilePage.js';
 import RegisterPage from './pages/registerPage.js';
 import SiteHeader from './components/siteHeader/index.js';
 import { AuthProvider } from './context/authContext.js';
@@ -38,6 +39,7 @@ const App = () => {
           <Route path="/fanScorePage" element={<FanScorePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/selectMatch" element={<SelectMatch />} />
           <Route path="/playerManagement/:teamId" element={<PlayerManagement/>} />
           <Route path="/match/:id" element={<MatchDetails />}/>

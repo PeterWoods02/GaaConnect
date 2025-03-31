@@ -113,3 +113,24 @@ export const createPlayer = async (playerData) => {
     handleError('creating player', error);
   }
 };
+
+
+export const uploadProfilePicture = async (userId, file) => {
+  try {
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+
+    const response = await fetch(`${BASE_URL}/${userId}/picture`, {
+      method: 'PATCH',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      handleError('uploading profile picture', 'Failed to upload picture');
+    }
+
+    return await response.json();
+  } catch (error) {
+    handleError('uploading profile picture', error);
+  }
+};

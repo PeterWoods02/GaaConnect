@@ -47,6 +47,11 @@ const UserSchema = new mongoose.Schema({
     required: false,
   },
 
+  profilePicture: {
+    type: String, 
+    default: '/assets/public/images/uploads/default.svg',
+  },
+
   createdAt: {
     type: Date,
     default: Date.now,
