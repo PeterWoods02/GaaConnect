@@ -2,10 +2,28 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AccountCircle } from '@mui/icons-material'; // Profile icon from MUI
 import '../../style.css'; 
+import { useNavigate } from 'react-router-dom';
+
 
 const SiteHeader = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [showTeamsDropdown, setShowTeamsDropdown] = useState(false);
+  const navigate = useNavigate();
+
+  const isAuthenticated = () => {
+    const token = localStorage.getItem('token');
+    return token && token !== 'undefined' && token !== 'null';
+  };
+
+  const handleProfileClick = () => {
+    if (isAuthenticated()) {
+      navigate('/profile');
+    } else {
+      navigate('/login');
+    }
+  };
+  
+  
 
   return (
     <header className="site-header">
@@ -74,7 +92,14 @@ const SiteHeader = () => {
           <AccountCircle className="profile-icon" />
           {showSettings && (
             <div className="dropdown-menu">
-              <Link to="/profile">Manage Account</Link>
+              <Link to="#" onClick={(e) => {
+                      e.preventDefault();
+                      handleProfileClick();
+                    }}
+                  >
+                    Manage Account
+                  </Link>
+
               <Link to="/logout">Logout</Link>
             </div>
           )}

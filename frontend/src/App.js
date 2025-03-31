@@ -15,12 +15,15 @@ import PlayerStats from './pages/playerStats.js';
 import DisplayTeam from './pages/displayTeam.js';
 import FanPage from './pages/fanMatchPage.js';
 import FanScorePage from './pages/fanScorePage.js';
+import LoginPage from './pages/loginPage.js';
+import RegisterPage from './pages/registerPage.js';
 import SiteHeader from './components/siteHeader/index.js';
-
+import { AuthProvider } from './context/authContext.js';
 
 const App = () => {
   return (
     <Router>
+      <AuthProvider>
       <div>
         <SiteHeader />
         <Routes>
@@ -33,6 +36,8 @@ const App = () => {
           <Route path="/selectTeam" element={<SelectTeam />} />
           <Route path="/fanPage/match/:matchId" element={<FanPage />} />
           <Route path="/fanScorePage" element={<FanScorePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/selectMatch" element={<SelectMatch />} />
           <Route path="/playerManagement/:teamId" element={<PlayerManagement/>} />
           <Route path="/match/:id" element={<MatchDetails />}/>
@@ -41,6 +46,7 @@ const App = () => {
           <Route path="/match/team/:id" element={<DisplayTeam />} />
         </Routes>
       </div>
+      </AuthProvider>
     </Router>
   );
 };

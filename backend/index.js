@@ -9,6 +9,7 @@ import userRouter from './api/user/index.js';
 import eventRouter from './api/event/index.js';
 import './db/index.js';
 import { Server } from 'socket.io';
+import authRoutes from './api/user/authRoutes.js';
 
 dotenv.config();
 
@@ -66,6 +67,7 @@ app.use('/api/team', teamRouter);
 app.use('/api/statistics', statisticsRouter);
 app.use('/api/match', matchRouter);
 app.use('/api/event', eventRouter);
+app.use('/api/auth', authRoutes);
 
 server.listen(port, () => {
     console.info(`Server running at ${port}`);
