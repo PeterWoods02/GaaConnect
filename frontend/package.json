@@ -11,6 +11,7 @@
     "@tailwindcss/postcss": "^4.0.4",
     "axios": "^1.7.9",
     "cra-template": "1.2.0",
+    "cra-template-pwa": "^2.0.0",
     "date-fns": "^4.1.0",
     "node-fetch": "^3.3.2",
     "postcss": "^8.5.1",

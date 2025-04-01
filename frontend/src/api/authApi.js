@@ -1,5 +1,4 @@
-//const BASE_URL = 'http://localhost:8080/api/auth';
-const BASE_URL = 'http://3.253.35.199/:8080/api/auth';
+const BASE_URL = 'http://localhost:8080/api/auth';
 
 const handleError = (action, error, response = null) => {
   const errorMessage = response ? `${response.statusText}: ${response.status}` : error.message;
