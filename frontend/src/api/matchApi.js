@@ -1,4 +1,5 @@
-const BASE_URL = 'http://localhost:8080/api/match'; 
+//const BASE_URL = 'http://localhost:8080/api/match'; 
+const BASE_URL = 'http://3.253.35.199:8080/api/match';
 
 // Error handler function
 const handleError = (action, error, response = null) => {

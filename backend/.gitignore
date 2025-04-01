@@ -42,3 +42,8 @@ Thumbs.db
 *~
 
 /public
+
+# Docker
+.dockerignore
+*.log
+

@@ -1,4 +1,5 @@
-const BASE_URL = 'http://localhost:8080/api/team'; 
+//const BASE_URL = 'http://localhost:8080/api/team'; 
+const BASE_URL = 'http://3.253.35.199:8080/api/team';
 
 // error handler function
 const handleError = (action, error, response = null) => {
