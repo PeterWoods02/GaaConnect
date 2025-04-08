@@ -4,7 +4,9 @@ import Team from '../team/teamModel.js';
 import User from '../user/userModel.js';
 import Statistics from '../statistics/statisticsModel.js';
 import mongoose from 'mongoose';
-import Event from '../event/eventModel.js'
+import Event from '../event/eventModel.js';
+import { authenticateToken } from '../../middleware/auth.js';
+import { checkRole } from '../../middleware/checkRole.js';
 
 const router = express.Router();
 
@@ -39,7 +41,7 @@ router.get("/:id", async (req, res) => {
   
 
 // Create a match or fixture
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
         const { matchTitle, date, location, opposition, score, results, statistics, team, admissionFee, status } = req.body;
 
@@ -74,7 +76,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a match
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
       const {
         matchTitle, date, location, opposition, score,
@@ -83,7 +85,7 @@ router.put('/:id', async (req, res) => {
       } = req.body;
   
       if (player) {
-        const existingPlayer = await User.findById(playerId);
+        const existingPlayer = await User.findById(playerId);//Check later
         if (!existingPlayer) {
           return res.status(400).json({ message: 'Invalid player reference' });
         }
@@ -113,7 +115,7 @@ router.put('/:id', async (req, res) => {
   
 
 // Route to update or create team positions for a match
-router.put('/:id/team', async (req, res) => {
+router.put('/:id/team', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     const { teamPositions } = req.body; 
 
     try {
@@ -164,7 +166,7 @@ router.get("/:id/squad", async (req, res) => {
 
 
 // Delete a match
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
         const deletedMatch = await Match.findByIdAndDelete(req.params.id);
 
@@ -183,7 +185,7 @@ router.delete('/:id', async (req, res) => {
 
 
 // Start Match
-router.post('/:id/start', async (req, res) => {
+router.post('/:id/start', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
       const match = await Match.findById(req.params.id);
   
@@ -204,7 +206,7 @@ router.post('/:id/start', async (req, res) => {
     }
   });
 
-  router.post('/:id/half-time', async (req, res) => {
+  router.post('/:id/half-time', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
       const match = await Match.findById(req.params.id);
   
@@ -223,7 +225,7 @@ router.post('/:id/start', async (req, res) => {
     }
   });
 
-  router.post('/:id/second-half', async (req, res) => {
+  router.post('/:id/second-half', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
       const match = await Match.findById(req.params.id);
   
@@ -242,7 +244,7 @@ router.post('/:id/start', async (req, res) => {
       res.status(500).json({ message: 'Failed to start second half' });
     }
   });
-  router.post('/:id/end', async (req, res) => {
+  router.post('/:id/end', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     try {
       const match = await Match.findById(req.params.id);
   
@@ -265,7 +267,7 @@ router.post('/:id/start', async (req, res) => {
   
 
 // Update Score
-router.post('/:id/score', async (req, res) => {
+router.post('/:id/score', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     const { teamGoals, teamPoints, oppositionGoals, oppositionPoints } = req.body;
 
     try {
@@ -291,7 +293,7 @@ router.post('/:id/score', async (req, res) => {
 });
 
 
-router.post('/:id/event', async (req, res) => {
+router.post('/:id/event', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     const { type, teamId, playerId, minute } = req.body;
 
     if (teamId && !mongoose.Types.ObjectId.isValid(teamId)) {
@@ -431,7 +433,7 @@ router.post('/:id/event', async (req, res) => {
 });
 
 //Undo event
-router.delete('/:matchId/event/:eventId', async (req, res) => {
+router.delete('/:matchId/event/:eventId', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     const { matchId, eventId } = req.params;
   
     if (!mongoose.Types.ObjectId.isValid(matchId) || !mongoose.Types.ObjectId.isValid(eventId)) {
@@ -513,7 +515,7 @@ router.delete('/:matchId/event/:eventId', async (req, res) => {
 
 
 // Update Statistics
-router.post('/:id/statistics', async (req, res) => {
+router.post('/:id/statistics', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
     const { playerId, stats } = req.body; // Player's stats like goals, assists, etc.
 
     try {

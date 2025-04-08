@@ -4,11 +4,13 @@ import User from '../user/userModel.js';
 import Match from '../match/matchModel.js';
 import Team from '../team/teamModel.js';
 import mongoose from 'mongoose';
+import { authenticateToken } from '../../middleware/auth.js';
+import { checkRole } from '../../middleware/checkRole.js';
 
 const router = express.Router();
 
-// GET all events
-router.get('/', async (req, res) => {
+// GET all events (restricted to admin, coach, manager)
+router.get('/', authenticateToken, checkRole('admin', 'coach', 'manager'), async (req, res) => {
   try {
     const events = await Event.find()
       .select('type minute team player')

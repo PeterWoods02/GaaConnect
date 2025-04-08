@@ -20,34 +20,38 @@ import ProfilePage from './pages/profilePage.js';
 import RegisterPage from './pages/registerPage.js';
 import SiteHeader from './components/siteHeader/index.js';
 import { AuthProvider } from './context/authContext.js';
+import ProtectedRoute from './context/protectedRoutes.js';
 
 const App = () => {
   return (
     <Router>
       <AuthProvider>
-      <div>
-        <SiteHeader />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/createTeam/:matchId" element={<CreateTeam />} />
-          <Route path="/addTeam" element={<AddTeam />}/>
-          <Route path="/addPlayer" element={<AddPlayer />}/>
-          <Route path="/calendar" element={<Calendar />}/>
-          <Route path="/manageTeams/:teamId" element={<ManageTeams />}/>
-          <Route path="/selectTeam" element={<SelectTeam />} />
-          <Route path="/fanPage/match/:matchId" element={<FanPage />} />
-          <Route path="/fanScorePage" element={<FanScorePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/selectMatch" element={<SelectMatch />} />
-          <Route path="/playerManagement/:teamId" element={<PlayerManagement/>} />
-          <Route path="/match/:id" element={<MatchDetails />}/>
-          <Route path="/match/live/:id" element={<MatchDay />} /> 
-          <Route path="/playerStats" element={<PlayerStats />}/>
-          <Route path="/match/team/:id" element={<DisplayTeam />} />
-        </Routes>
-      </div>
+        <div>
+          <SiteHeader />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/fanPage/match/:matchId" element={<FanPage />} />
+            <Route path="/fanScorePage" element={<FanScorePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/playerStats" element={<PlayerStats />} />
+            <Route path="/match/team/:id" element={<DisplayTeam />} />
+
+            {/* Protected Routes */}
+            <Route path="/addTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><AddTeam /></ProtectedRoute>} />
+            <Route path="/addPlayer" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><AddPlayer /></ProtectedRoute>} />
+            <Route path="/createTeam/:matchId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><CreateTeam /></ProtectedRoute>} />
+            <Route path="/manageTeams/:teamId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><ManageTeams /></ProtectedRoute>} />
+            <Route path="/playerManagement/:teamId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><PlayerManagement /></ProtectedRoute>} />
+            <Route path="/match/:id" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><MatchDetails /></ProtectedRoute>} />
+            <Route path="/match/live/:id" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><MatchDay /></ProtectedRoute>} />
+            <Route path="/selectMatch" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectMatch /></ProtectedRoute>} />
+            <Route path="/selectTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectTeam /></ProtectedRoute>} />
+          </Routes>
+        </div>
       </AuthProvider>
     </Router>
   );

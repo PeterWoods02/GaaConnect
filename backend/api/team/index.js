@@ -1,6 +1,8 @@
 import express from 'express';
 import Team from './teamModel.js';  
 import User from '../user/userModel.js';
+import { authenticateToken } from '../../middleware/auth.js';
+import { checkRole } from '../../middleware/checkRole.js';
 
 const router = express.Router();
 
@@ -37,7 +39,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new team
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   try {
     const { name, age_group, division, year, players, managementTeam } = req.body;
 
@@ -72,7 +74,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a team
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   try {
     const { name, age_group, division, year, players, managementTeam } = req.body;
 
@@ -102,7 +104,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete team
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   try {
     // Find the team by ID
     const team = await Team.findById(req.params.id);
@@ -122,7 +124,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // Add a player to a team
-router.post('/:id/players', async (req, res) => {
+router.post('/:id/players', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   const { id: teamId } = req.params;
   const { playerId } = req.body;  
 
@@ -160,7 +162,7 @@ router.post('/:id/players', async (req, res) => {
 });
 
 // Remove a player from a team
-router.delete('/:id/players/:playerId', async (req, res) => {
+router.delete('/:id/players/:playerId', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   const { id: teamId, playerId } = req.params;  
   
   try {

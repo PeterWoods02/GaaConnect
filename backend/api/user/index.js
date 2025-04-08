@@ -2,6 +2,8 @@ import express from 'express';
 import User from './userModel.js';
 import multer from 'multer';
 import path from 'path';
+import { authenticateToken } from '../../middleware/auth.js';
+import { checkRole } from '../../middleware/checkRole.js';
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -15,8 +17,8 @@ const upload = multer({ storage });
 
 const router = express.Router();
 
-// GET all users (filter optional)
-router.get('/', async (req, res) => {
+// GET all users (admin only)
+router.get('/', authenticateToken, checkRole('admin'), async (req, res) => {
   try {
     const roleFilter = req.query.role ? { role: req.query.role } : {};
     const users = await User.find(roleFilter).populate('statistics');
@@ -27,11 +29,19 @@ router.get('/', async (req, res) => {
   }
 });
 
-//GET user by ID
-router.get('/:id', async (req, res) => {
+// GET user by ID (self or admin)
+router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const user = await User.findById(req.params.id).populate('statistics');
     if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (
+      req.user.role !== 'admin' &&
+      req.user._id.toString() !== req.params.id
+    ) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     res.json(user);
   } catch (err) {
     console.error('Error fetching user:', err);
@@ -39,8 +49,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-//Create new user 
-router.post('/', async (req, res) => {
+// Create new user (admin only)
+router.post('/', authenticateToken, checkRole('admin'), async (req, res) => {
   try {
     const {
       name,
@@ -73,9 +83,16 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Update user
-router.put('/:id', async (req, res) => {
+// Update user (self or admin)
+router.put('/:id', authenticateToken, async (req, res) => {
   try {
+    if (
+      req.user.role !== 'admin' &&
+      req.user._id.toString() !== req.params.id
+    ) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     const updated = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
     });
@@ -87,8 +104,8 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-//Delete user
-router.delete('/:id', async (req, res) => {
+// Delete user (admin only)
+router.delete('/:id', authenticateToken, checkRole('admin'), async (req, res) => {
   try {
     const deleted = await User.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'User not found' });
@@ -99,8 +116,8 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
-// GET all players
-router.get('/players', async (req, res) => {
+// GET all players (authenticated)
+router.get('/players', authenticateToken, async (req, res) => {
   try {
     const players = await User.find({ role: 'player' }).populate('statistics');
     res.status(200).json(players);
@@ -110,9 +127,13 @@ router.get('/players', async (req, res) => {
   }
 });
 
-// Upload profile picture
-router.patch('/:id/picture', upload.single('profilePicture'), async (req, res) => {
+// Upload profile picture (self only)
+router.patch('/:id/picture', authenticateToken, upload.single('profilePicture'), async (req, res) => {
   try {
+    if (req.user._id.toString() !== req.params.id) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
@@ -132,7 +153,5 @@ router.patch('/:id/picture', upload.single('profilePicture'), async (req, res) =
     res.status(500).json({ message: 'Failed to upload profile picture' });
   }
 });
-
-
 
 export default router;
