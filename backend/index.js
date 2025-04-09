@@ -7,6 +7,7 @@ import statisticsRouter from './api/statistics/index.js';
 import matchRouter from './api/match/index.js';
 import userRouter from './api/user/index.js';
 import eventRouter from './api/event/index.js';
+import inviteRoutes from './api/invites/index.js';
 import './db/index.js';
 import { Server } from 'socket.io';
 import authRoutes from './api/user/authRoutes.js';
@@ -68,6 +69,7 @@ app.use('/api/statistics', statisticsRouter);
 app.use('/api/match', matchRouter);
 app.use('/api/event', eventRouter);
 app.use('/api/auth', authRoutes);
+app.use('/api/invites', inviteRoutes);
 app.use('/uploads', express.static('public/uploads'));
 
 server.listen(port, () => {

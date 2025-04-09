@@ -18,6 +18,8 @@ import FanScorePage from './pages/fanScorePage.js';
 import LoginPage from './pages/loginPage.js';
 import ProfilePage from './pages/profilePage.js';
 import RegisterPage from './pages/registerPage.js';
+import ManagerSignupPage from './pages/managerSignUpPage.js';
+import InviteManagerPage from './pages/inviteManagerPage';
 import SiteHeader from './components/siteHeader/index.js';
 import { AuthProvider } from './context/authContext.js';
 import ProtectedRoute from './context/protectedRoutes.js';
@@ -39,6 +41,8 @@ const App = () => {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/playerStats" element={<PlayerStats />} />
             <Route path="/match/team/:id" element={<DisplayTeam />} />
+            <Route path="/managerSignup" element={<ManagerSignupPage />} />
+
 
             {/* Protected Routes */}
             <Route path="/addTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><AddTeam /></ProtectedRoute>} />
@@ -50,6 +54,7 @@ const App = () => {
             <Route path="/match/live/:id" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><MatchDay /></ProtectedRoute>} />
             <Route path="/selectMatch" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectMatch /></ProtectedRoute>} />
             <Route path="/selectTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectTeam /></ProtectedRoute>} />
+            <Route path="/inviteManager" element={ <ProtectedRoute roles={['admin']}> <InviteManagerPage /> </ProtectedRoute>}/>
           </Routes>
         </div>
       </AuthProvider>
