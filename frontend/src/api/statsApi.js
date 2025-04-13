@@ -1,17 +1,26 @@
 const BASE_URL = 'http://localhost:8080/api/statistics';
 
 const handleError = (action, error, response = null) => {
-    const errorMessage = response ? `${response.statusText}: ${response.status}` : error.message;
+  const errorMessage =
+  error?.message || (response ? `${response.statusText}: ${response.status}` : 'An unexpected error occurred');
+  if (errorMessage !== 'You are not assigned to any team yet.') {
     console.error(`Error ${action}: ${errorMessage}`);
-    throw new Error(`Error ${action}: ${errorMessage}`);
-  };
+  }
+  throw new Error(errorMessage);
+};
 
-  export const getAllStatistics = async () => {
+  export const getAllStatistics = async (token) => {
     try {
-      const response = await fetch(BASE_URL);
+      const response = await fetch(BASE_URL, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
       if (!response.ok) {
-        handleError('fetching statistics', 'Failed to fetch statistics from the server');
-      }
+        const errorRes = await response.json();
+        handleError('fetching statistics', new Error(errorRes.message || 'Failed to fetch statistics'), response);
+        }
       const data = await response.json();
       return data;
     } catch (error) {
@@ -19,11 +28,17 @@ const handleError = (action, error, response = null) => {
     }
   };
 
-  export const getStatisticsById = async (id) => {
+  export const getStatisticsById = async (id, token) => {
     try {
-      const response = await fetch(`${BASE_URL}/${id}`);
+      const response = await fetch(`${BASE_URL}/${id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
       if (!response.ok) {
-        handleError('fetching statistics by ID', 'Failed to fetch statistics from the server');
+        const errorRes = await response.json();
+        handleError('fetching statistics by ID', new Error(errorRes.message || 'Failed to fetch statistics from the server'), response);
       }
       const data = await response.json();
       return data;
@@ -32,11 +47,17 @@ const handleError = (action, error, response = null) => {
     }
   };
 
-  export const getStatisticsByPlayerId = async (playerId) => {
+  export const getStatisticsByPlayerId = async (playerId, token) => {
     try {
-      const response = await fetch(`${BASE_URL}/player/${playerId}`);
+      const response = await fetch(`${BASE_URL}/player/${playerId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
       if (!response.ok) {
-        handleError('fetching statistics by Player ID', 'Failed to fetch statistics from the server');
+        const errorRes = await response.json();
+        handleError('fetching statistics by Player ID', new Error(errorRes.message || 'Failed to fetch statistics from the server'), response);
       }
       const data = await response.json();
       return data;

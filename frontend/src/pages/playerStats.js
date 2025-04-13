@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from "react";
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel, Typography } from "@mui/material";
+import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel, Typography } from "@mui/material";
 import { getAllStatistics } from "../api/statsApi";
+import { useNavigate } from "react-router-dom";
 
 const PlayersStatsPage = () => {
   const [statistics, setStatistics] = useState([]);
   const [sortBy, setSortBy] = useState("total_score");
   const [sortOrder, setSortOrder] = useState("desc");
+  const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStatistics = async () => {
+      const token = localStorage.getItem("token");
       try {
-        const data = await getAllStatistics();
-        setStatistics(data);
+        const stats = await getAllStatistics(token);
+        setStatistics(stats);
       } catch (error) {
         console.error("Error fetching statistics:", error);
+        setError(error.message);
       }
     };
     fetchStatistics();
@@ -39,9 +44,24 @@ const PlayersStatsPage = () => {
 
   return (
     <TableContainer component={Paper} sx={{ mt: 3, p: 2 }}>
-      <Typography variant="h6" textAlign="center" gutterBottom>
-        Player Statistics
+    <Typography variant="h6" textAlign="center" gutterBottom>
+      Player Statistics
+    </Typography>
+  
+    {error ? (
+    <Typography align="center" color="error" sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      {error}
+      {error === "You are not assigned to any team yet." && (
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/contact-admin")}>
+          Contact Admin
+        </Button>
+      )}
+  </Typography>
+    ) : statistics.length === 0 ? (
+      <Typography align="center" sx={{ py: 5 }}>
+        No statistics available for your team.
       </Typography>
+    ) : (
       <Table>
         <TableHead>
           <TableRow>
@@ -73,8 +93,10 @@ const PlayersStatsPage = () => {
           ))}
         </TableBody>
       </Table>
-    </TableContainer>
+    )}
+  </TableContainer>
   );
 };
+
 
 export default PlayersStatsPage;
