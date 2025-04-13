@@ -12,9 +12,11 @@ const AddPlayer = () => {
 
   // Function to handle player creation
   const handleCreatePlayer = async (playerData) => {
+    const token = localStorage.getItem('token');
+
     try {
       console.log('Sending player data:', playerData);
-      await createPlayer(playerData);
+      await createPlayer(playerData, token);
       setSnackbarMessage('Player created successfully!'); 
       setSnackbarSeverity('success'); 
       setOpenSnackbar(true); 

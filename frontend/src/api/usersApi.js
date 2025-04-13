@@ -95,17 +95,20 @@ export const getPlayers = async () => {
   }
 };
 
-export const createPlayer = async (playerData) => {
+export const createPlayer = async (playerData, token) => {
   try {
     const response = await fetch(`${BASE_URL}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }), 
+      },
       body: JSON.stringify({ ...playerData, role: 'player' }),
     });
 
     if (!response.ok) {
       const errorRes = await response.json();
-      handleError('creating player', 'Failed to create player', errorRes);
+      handleError('creating player', new Error('Failed to create player'), errorRes);
     }
 
     return await response.json();

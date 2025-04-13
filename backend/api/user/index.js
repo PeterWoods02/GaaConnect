@@ -50,7 +50,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 });
 
 // Create new user (admin only)
-router.post('/', authenticateToken, checkRole('admin'), async (req, res) => {
+router.post('/', authenticateToken, checkRole('admin', 'manager'), async (req, res) => {
   try {
     const {
       name,
