@@ -72,6 +72,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/invites', inviteRoutes);
 app.use('/uploads', express.static('public/uploads'));
 
-server.listen(port, () => {
+if (process.env.NODE_ENV !== 'test') {
+  server.listen(port, () => {
     console.info(`Server running at ${port}`);
   });
+}
+
+export default app;

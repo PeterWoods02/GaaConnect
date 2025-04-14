@@ -35,10 +35,13 @@ router.get('/:id', authenticateToken, async (req, res) => {
     const user = await User.findById(req.params.id).populate('statistics');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
+    const userId = req.user._id || req.user.id;
+
     if (
       req.user.role !== 'admin' &&
-      req.user._id.toString() !== req.params.id
-    ) {
+      userId.toString() !== req.params.id
+    )
+  {  
       return res.status(403).json({ message: 'Forbidden' });
     }
 
