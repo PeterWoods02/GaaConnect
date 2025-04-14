@@ -85,11 +85,17 @@ export const getUsersByRole = async (role, token) => {
 // Specific Players
 
 
-export const getPlayers = async () => {
+export const getPlayers = async (token) => {
   try {
-    const response = await fetch(`${BASE_URL}/players`);
+    const response = await fetch(`${BASE_URL}/players`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
     if (!response.ok) {
-      handleError('fetching players', 'Failed to fetch players');
+      handleError('fetching players', new Error('Failed to fetch players'), response);
     }
     return await response.json();
   } catch (error) {

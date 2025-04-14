@@ -29,6 +29,17 @@ router.get('/', authenticateToken, checkRole('admin'), async (req, res) => {
   }
 });
 
+// GET all players (authenticated)
+router.get('/players', authenticateToken, async (req, res) => {
+  try {
+    const players = await User.find({ role: 'player' }).populate('statistics');
+    res.status(200).json(players);
+  } catch (err) {
+    console.error('Error fetching players:', err);
+    res.status(500).json({ message: 'Failed to fetch players' });
+  }
+});
+
 // GET user by ID (self or admin)
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
@@ -119,16 +130,6 @@ router.delete('/:id', authenticateToken, checkRole('admin'), async (req, res) =>
   }
 });
 
-// GET all players (authenticated)
-router.get('/players', authenticateToken, async (req, res) => {
-  try {
-    const players = await User.find({ role: 'player' }).populate('statistics');
-    res.status(200).json(players);
-  } catch (err) {
-    console.error('Error fetching players:', err);
-    res.status(500).json({ message: 'Failed to fetch players' });
-  }
-});
 
 // Upload profile picture (self only)
 router.patch('/:id/picture', authenticateToken, upload.single('profilePicture'), async (req, res) => {

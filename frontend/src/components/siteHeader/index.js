@@ -41,7 +41,7 @@ const SiteHeader = () => {
             {showTeamsDropdown && (
               <div className="dropdown-menu">
                 <Link to="/addPlayer">Add Player</Link>
-                <Link to="/" >Search Player</Link>
+                <Link to="/searchPlayers" >Search Player</Link>
                 <Link to="/playerStats">Player Stats</Link>
                 {user?.role === 'admin' && <Link to="/inviteManager">Invite Manager</Link>}
 

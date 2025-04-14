@@ -10,7 +10,7 @@ let createdUserId;
 beforeAll(async () => {
   
   // Clean 
-  await User.deleteMany({});
+  await User.deleteMany({ email: /@example\.com$/ });
 
   // Register Admin
   await request(app)

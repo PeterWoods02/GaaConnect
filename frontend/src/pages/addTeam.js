@@ -17,14 +17,12 @@ const AddTeam = () => {
   const handleCreateTeam = async (teamData) => {
     const token = localStorage.getItem('token');
     try {
-      console.log('Original team data:', teamData);
   
       // If manager is logged in, assign themselves automatically
       const finalTeamData = isManager
         ? { ...teamData, managementTeam: [user.id] }
         : teamData;
   
-      console.log('Sending team data:', finalTeamData);
       await createTeam(finalTeamData, token);
       setSnackbarMessage('Team created successfully!');
       setSnackbarSeverity('success');

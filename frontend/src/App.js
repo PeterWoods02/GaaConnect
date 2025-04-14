@@ -20,6 +20,7 @@ import ProfilePage from './pages/profilePage.js';
 import RegisterPage from './pages/registerPage.js';
 import ManagerSignupPage from './pages/managerSignUpPage.js';
 import InviteManagerPage from './pages/inviteManagerPage';
+import SearchPlayersPage from './pages/searchPlayers.js';
 import SiteHeader from './components/siteHeader/index.js';
 import { AuthProvider } from './context/authContext.js';
 import ProtectedRoute from './context/protectedRoutes.js';
@@ -55,6 +56,7 @@ const App = () => {
             <Route path="/selectMatch" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectMatch /></ProtectedRoute>} />
             <Route path="/selectTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectTeam /></ProtectedRoute>} />
             <Route path="/inviteManager" element={ <ProtectedRoute roles={['admin']}> <InviteManagerPage /> </ProtectedRoute>}/>
+            <Route path="/searchPlayers" element={ <ProtectedRoute roles={['admin', 'coach', 'manager']}> <SearchPlayersPage /> </ProtectedRoute>}/>
           </Routes>
         </div>
       </AuthProvider>

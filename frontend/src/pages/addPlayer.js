@@ -30,7 +30,6 @@ const AddPlayer = () => {
 
   return (
     <div>
-      <h2>Create New Player</h2>
       <PlayerForm onSubmit={handleCreatePlayer} />
       <SnackbarAlert
         open={openSnackbar}

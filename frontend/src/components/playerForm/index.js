@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Button, Grid } from '@mui/material';
+import { TextField, Button, Grid, Typography } from '@mui/material';
 
 const PlayerForm = ({ onSubmit }) => {
   const [playerData, setPlayerData] = useState({
@@ -24,6 +24,15 @@ const PlayerForm = ({ onSubmit }) => {
   };
 
   return (
+    <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+    <Typography
+      variant="h4"
+      align="center"
+      gutterBottom
+      style={{ color: '#282c34' }} 
+    >
+      Create New Player
+    </Typography>
     <form onSubmit={handleSubmit}>
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -90,6 +99,7 @@ const PlayerForm = ({ onSubmit }) => {
         </Grid>
       </Grid>
     </form>
+    </div>
   );
 };
 
