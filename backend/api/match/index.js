@@ -11,8 +11,20 @@ import { checkRole } from '../../middleware/checkRole.js';
 const router = express.Router();
 
 // Get all matches
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
+      const { role, team } = req.user;
+
+    let query = {};
+
+    if (role !== 'admin') {
+      if (!team || team.length === 0) {
+        return res.status(403).json({ message: 'You are not assigned to a team.' });
+      }
+
+      const teamIds = Array.isArray(team) ? team : [team];
+      query = { team: { $in: teamIds } };
+    }
         const matches = await Match.find()
             .populate('statistics')  
             .populate('team')      

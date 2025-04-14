@@ -10,8 +10,9 @@ const SelectMatch = () => {
 
   useEffect(() => {
     const fetchMatches = async () => {
+      const token = localStorage.getItem("token");
       try {
-        const data = await getMatches(); 
+        const data = await getMatches(token); 
         setMatches(data); 
         setLoading(false);
       } catch (error) {
@@ -35,6 +36,12 @@ const SelectMatch = () => {
       <Typography variant="h5" fontWeight="bold" gutterBottom>
         Select a Match to Manage
       </Typography>
+
+      {matches.length === 0 ? (
+      <Typography align="center" sx={{ mt: 4 }} color="textSecondary">
+        No matches available for your team at the moment.
+      </Typography>
+    ) : (
       <Grid container spacing={2}>
         {matches.map((match) => (
           <Grid item xs={12} key={match._id}>
@@ -65,7 +72,8 @@ const SelectMatch = () => {
           </Grid>
         ))}
       </Grid>
-    </Container>
+    )}
+  </Container>
   );
 };
 

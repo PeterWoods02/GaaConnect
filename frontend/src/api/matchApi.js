@@ -8,9 +8,14 @@ const handleError = (action, error, response = null) => {
 };
 
 // Get all matches from the backend
-export const getMatches = async () => {
+export const getMatches = async (token) => {
   try {
-    const response = await fetch(BASE_URL);
+    const response = await fetch(BASE_URL, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
     if (!response.ok) {
       handleError('fetching matches', 'Failed to fetch matches from the server');
     }
