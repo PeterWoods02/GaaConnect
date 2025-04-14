@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TextField, Button, Grid, Typography } from '@mui/material';
+import { TextField, Button, Grid, Typography, FormControl, InputLabel, Select, MenuItem  } from '@mui/material';
+
 
 const PlayerForm = ({ onSubmit }) => {
   const [playerData, setPlayerData] = useState({
@@ -68,14 +69,21 @@ const PlayerForm = ({ onSubmit }) => {
           />
         </Grid>
         <Grid item xs={12}>
-          <TextField
-            label="Position"
-            name="position"
-            fullWidth
-            value={playerData.position}
-            onChange={handleInputChange}
-            required
-          />
+          <FormControl fullWidth required>
+            <InputLabel>Position</InputLabel>
+            <Select
+              name="position"
+              value={playerData.position}
+              onChange={handleInputChange}
+              label="Position"
+            >
+              <MenuItem value=""><em>None</em></MenuItem>
+              <MenuItem value="Forward">Forward</MenuItem>
+              <MenuItem value="Midfield">Midfield</MenuItem>
+              <MenuItem value="Defender">Defender</MenuItem>
+              <MenuItem value="Goalkeeper">Goalkeeper</MenuItem>
+            </Select>
+          </FormControl>
         </Grid>
         <Grid item xs={12}>
           <TextField

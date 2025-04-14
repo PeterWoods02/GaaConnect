@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {TextField,List,ListItem,ListItemText,Modal,Box,Typography,Paper,Avatar,ListItemAvatar,} from '@mui/material';
 import { getPlayers } from '../api/usersApi';
+import PlayerFilters from '../components/playerFilters/index.js';
 
 const SearchPlayers = ({ userRole }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -8,6 +9,10 @@ const SearchPlayers = ({ userRole }) => {
   const [filteredPlayers, setFilteredPlayers] = useState([]);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const [position, setPosition] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  const [ageRange, setAgeRange] = useState([15, 40]);
 
   useEffect(() => {
     const fetchPlayers = async () => {
@@ -25,12 +30,36 @@ const SearchPlayers = ({ userRole }) => {
     fetchPlayers();
   }, []);
 
+  const calculateAge = (dob) => {
+    const birth = new Date(dob);
+    const diff = Date.now() - birth.getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+  };
+
   useEffect(() => {
-    const filtered = players.filter((player) =>
+    let filtered = players.filter((player) =>
       (player.name || '').toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    if (position) {
+      filtered = filtered.filter((player) => player.position === position);
+    }
+
+    filtered = filtered.filter((player) => {
+      const age = calculateAge(player.date_of_birth);
+      return age >= ageRange[0] && age <= ageRange[1];
+    });
+
+    if (sortBy === 'name') {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === 'position') {
+      filtered.sort((a, b) => a.position.localeCompare(b.position));
+    } else if (sortBy === 'dob') {
+      filtered.sort((a, b) => new Date(a.date_of_birth) - new Date(b.date_of_birth));
+    }
+
     setFilteredPlayers(filtered);
-  }, [searchTerm, players]);
+  }, [searchTerm, players, position, sortBy, ageRange]);
 
   const handleOpenPlayer = (player) => {
     setSelectedPlayer(player);
@@ -53,6 +82,15 @@ const SearchPlayers = ({ userRole }) => {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         style={{ marginBottom: '20px' }}
+      />
+
+       <PlayerFilters
+        position={position}
+        setPosition={setPosition}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        ageRange={ageRange}
+        setAgeRange={setAgeRange}
       />
 
       {loading ? (
