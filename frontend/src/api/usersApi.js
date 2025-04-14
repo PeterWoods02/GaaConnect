@@ -66,12 +66,14 @@ export const deleteUser = async (id) => {
   }
 };
 
-export const getUsersByRole = async (role) => {
+export const getUsersByRole = async (role, token) => {
   try {
-    const response = await fetch(`${BASE_URL}?role=${role}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch users by role');
-    }
+    const response = await fetch(`${BASE_URL}?role=${role}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
     return await response.json();
   } catch (error) {
     console.error('Error fetching users by role:', error);

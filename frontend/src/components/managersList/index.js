@@ -9,8 +9,9 @@ const ManagerSelect = ({ value, onChange }) => {
   // fetch managers
   useEffect(() => {
     const fetchManagers = async () => {
+      const token = localStorage.getItem('token');
       try {
-        const managerList = await getUsersByRole('manager');
+        const managerList = await getUsersByRole('manager', token);
         setManagers(managerList);  
       } catch (error) {
         console.error('Error fetching managers:', error);

@@ -9,11 +9,23 @@ const AddTeam = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const token = localStorage.getItem('token');
+  const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
+  const isManager = user?.role === 'manager';
+  const isAdmin = user?.role === 'admin';
 
   const handleCreateTeam = async (teamData) => {
+    const token = localStorage.getItem('token');
     try {
-      console.log('Sending team data:', teamData);
-      await createTeam(teamData);
+      console.log('Original team data:', teamData);
+  
+      // If manager is logged in, assign themselves automatically
+      const finalTeamData = isManager
+        ? { ...teamData, managementTeam: [user.id] }
+        : teamData;
+  
+      console.log('Sending team data:', finalTeamData);
+      await createTeam(finalTeamData, token);
       setSnackbarMessage('Team created successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
@@ -28,7 +40,7 @@ const AddTeam = () => {
   return (
     <div>
       <h2>Create New Team</h2>
-      <TeamForm onSubmit={handleCreateTeam} />
+      <TeamForm onSubmit={handleCreateTeam} showManagerSelect={isAdmin} />
       <SnackbarAlert open={openSnackbar} message={snackbarMessage} severity={snackbarSeverity} onClose={() => setOpenSnackbar(false)} />
     </div>
   );

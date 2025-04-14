@@ -38,13 +38,14 @@ export const getTeamById = async (id) => {
   };
 
 // create a new team
-export const createTeam = async (teamData) => {
+export const createTeam = async (teamData, token) => {
   try {
     console.log('Sending team data:', teamData);  
     const response = await fetch(BASE_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(teamData),
     });

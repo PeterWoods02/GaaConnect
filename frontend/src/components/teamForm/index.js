@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { TextField, Button, Grid } from '@mui/material';
 import ManagerSelect from '../managersList'; 
 
-const TeamForm = ({ onSubmit }) => {
+const TeamForm = ({ onSubmit, showManagerSelect }) => {
   const [teamData, setTeamData] = useState({
     name: '',
     age_group: '',  // renamed here
@@ -79,9 +79,12 @@ const TeamForm = ({ onSubmit }) => {
         </Grid>
 
         {/* Manager Selection Dropdown */}
-        <Grid item xs={12}>
-          <ManagerSelect value={teamData.managementTeam} onChange={handleManagerChange} />
-        </Grid>
+        {showManagerSelect && (
+          <Grid item xs={12}>
+            <ManagerSelect value={teamData.managementTeam} onChange={handleManagerChange} />
+          </Grid>
+        )}
+
 
         <Grid item xs={12}>
           <Button variant="contained" color="primary" type="submit" fullWidth>
