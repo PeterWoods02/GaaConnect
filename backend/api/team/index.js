@@ -41,9 +41,9 @@ router.get('/:id', async (req, res) => {
 // Create a new team
 router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   try {
-    const { name, age_group, division, year, players, managementTeam } = req.body;
+    const { name, age_group, division, year, players, manager } = req.body;
 
-    if (!name || !age_group || !division || !year || players === undefined || managementTeam === undefined) {
+    if (!name || !age_group || !division || !year || players === undefined || manager === undefined) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -59,8 +59,8 @@ router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), asyn
       age_group,
       division,
       year,
-      players: players || [],  
-      managementTeam: managementTeam || [], 
+      players: players || [],
+      manager: manager || [],
     });
 
     await newTeam.save();
@@ -76,7 +76,7 @@ router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), asyn
 // Update a team
 router.put('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
   try {
-    const { name, age_group, division, year, players, managementTeam } = req.body;
+    const { name, age_group, division, year, players, manager } = req.body;
 
     // Find the team by ID
     const team = await Team.findById(req.params.id);
@@ -90,7 +90,7 @@ router.put('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), as
     team.division = division || team.division;
     team.year = year || team.year;
     team.players = players || team.players; 
-    team.managementTeam = managementTeam || team.managementTeam;
+    team.manager = manager || team.manager;
 
     // Save the updated team
     await team.save();

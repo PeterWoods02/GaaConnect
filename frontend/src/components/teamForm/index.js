@@ -8,7 +8,7 @@ const TeamForm = ({ onSubmit, showManagerSelect }) => {
     age_group: '',  // renamed here
     division: '',
     year: '',
-    managementTeam: [],
+    manager: [],
     players: [],
   });
 
@@ -24,8 +24,8 @@ const TeamForm = ({ onSubmit, showManagerSelect }) => {
     const { value } = event.target;
     setTeamData((prevData) => ({
       ...prevData,
-      managementTeam: value,
-    }));
+      manager: value,
+    }));    
   };
 
   const handleSubmit = (event) => {
@@ -81,7 +81,7 @@ const TeamForm = ({ onSubmit, showManagerSelect }) => {
         {/* Manager Selection Dropdown */}
         {showManagerSelect && (
           <Grid item xs={12}>
-            <ManagerSelect value={teamData.managementTeam} onChange={handleManagerChange} />
+            <ManagerSelect value={teamData.manager} onChange={handleManagerChange} />
           </Grid>
         )}
 

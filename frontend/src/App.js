@@ -57,7 +57,7 @@ const App = () => {
             <Route path="/selectTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectTeam /></ProtectedRoute>} />
             <Route path="/inviteManager" element={ <ProtectedRoute roles={['admin']}> <InviteManagerPage /> </ProtectedRoute>}/>
             <Route path="/searchPlayers" element={ <ProtectedRoute roles={['admin', 'coach', 'manager']}> <SearchPlayersPage /> </ProtectedRoute>}/>
-          </Routes>
+           </Routes>
         </div>
       </AuthProvider>
     </Router>

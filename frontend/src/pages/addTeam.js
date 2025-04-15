@@ -3,6 +3,7 @@ import { createTeam } from '../api/teamsApi.js';
 import { useNavigate } from 'react-router-dom';
 import TeamForm from '../components/teamForm/index.js';
 import SnackbarAlert from '../components/snackbarAlert/index.js';
+import { Typography, Box } from '@mui/material';
 
 const AddTeam = () => {
   const navigate = useNavigate();
@@ -20,8 +21,9 @@ const AddTeam = () => {
   
       // If manager is logged in, assign themselves automatically
       const finalTeamData = isManager
-        ? { ...teamData, managementTeam: [user.id] }
-        : teamData;
+      ? { ...teamData, manager: [user.id] }
+      : { ...teamData, manager: teamData.manager };
+
   
       await createTeam(finalTeamData, token);
       setSnackbarMessage('Team created successfully!');
@@ -36,11 +38,25 @@ const AddTeam = () => {
   };
 
   return (
-    <div>
-      <h2>Create New Team</h2>
+    <Box sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
+      <Typography
+        variant="h4"
+        align="center"
+        gutterBottom
+        sx={{ color: '#282c34', fontWeight: 600 }}
+      >
+        Create New Team
+      </Typography>
+
       <TeamForm onSubmit={handleCreateTeam} showManagerSelect={isAdmin} />
-      <SnackbarAlert open={openSnackbar} message={snackbarMessage} severity={snackbarSeverity} onClose={() => setOpenSnackbar(false)} />
-    </div>
+
+      <SnackbarAlert
+        open={openSnackbar}
+        message={snackbarMessage}
+        severity={snackbarSeverity}
+        onClose={() => setOpenSnackbar(false)}
+      />
+    </Box>
   );
 };
 

@@ -7,20 +7,34 @@ const SelectTeam = () => {
   const [teams, setTeams] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const user = token ? JSON.parse(atob(token.split(".")[1])) : null;
+  const isManager = user?.role === "manager";
 
   useEffect(() => {
     const fetchTeams = async () => {
       try {
-        const data = await getTeams(); 
-        setTeams(data); // Store teams
-        setLoading(false);
+        const data = await getTeams();
+
+        const filteredTeams = isManager
+          ? data.filter((team) =>
+              team.manager?.some((m) =>
+                typeof m === "object"
+                  ? m._id === user.id
+                  : m === user.id
+              )
+            )
+          : data;
+        setTeams(filteredTeams);
       } catch (error) {
         console.error("Failed to fetch teams:", error);
+      } finally {
         setLoading(false);
       }
     };
+
     fetchTeams();
-  }, []);
+  }, [isManager, user?.id]);
 
   if (loading) {
     return (
