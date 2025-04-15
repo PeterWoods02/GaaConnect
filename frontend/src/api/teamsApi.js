@@ -105,12 +105,13 @@ export const deleteTeam = async (id) => {
 
 
 // Function to add a player to a team
-export const addPlayerToTeam = async (teamId, playerId) => {
+export const addPlayerToTeam = async (teamId, playerId, token) => {
   try {
     const response = await fetch(`${BASE_URL}/${teamId}/players`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify({ playerId }),
     });
@@ -128,10 +129,15 @@ export const addPlayerToTeam = async (teamId, playerId) => {
 
 
 //remove player from a team
-export const removePlayerFromTeam = async (teamId, playerId) => {
+export const removePlayerFromTeam = async (teamId, playerId, token) => {
   try {
     const response = await fetch(`${BASE_URL}/${teamId}/players/${playerId}`, {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ playerId }),
     });
 
     if (!response.ok) {
