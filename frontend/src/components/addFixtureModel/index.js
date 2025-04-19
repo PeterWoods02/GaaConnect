@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { createMatch } from "../../api/matchApi.js"; 
 import { getTeams } from "../../api/teamsApi.js"; 
+import { useNavigate } from "react-router-dom";
+import { Snackbar, Alert } from "@mui/material";
 
 const FullscreenForm = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [matchTitle, setMatchTitle] = useState("");
   const [date, setDate] = useState("");
@@ -13,6 +16,7 @@ const FullscreenForm = () => {
   const [teams, setTeams] = useState([]); 
   const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(""); 
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
 
   // Fetch the teams when the component mounts
   useEffect(() => {
@@ -52,20 +56,24 @@ const FullscreenForm = () => {
       setError(""); 
 
       // Send match data to the backend API
-      const newMatch = await createMatch(matchData);
+      const token = localStorage.getItem("token");
+      const newMatch = await createMatch(matchData, token);
       console.log("New match created:", newMatch);
 
       // Close form and reset fields after successful creation
-      setIsOpen(false);
       setMatchTitle("");
       setDate("");
       setLocation("");
       setOpposition("");
       setAdmissionFee("");
-      setSelectedTeam(""); 
+      setSelectedTeam("");
+      setIsOpen(false);
+      setSnackbarOpen(true);
 
       
-      alert("Match created successfully!");
+      setTimeout(() => {
+        navigate("/calendar");
+      }, 1500);
     } catch (error) {
       console.error("Error creating match:", error);
       setError("Failed to create match. Please try again.");
@@ -206,6 +214,22 @@ const FullscreenForm = () => {
                 </button>
               </div>
             </form>
+
+            <Snackbar
+              open={snackbarOpen}
+              autoHideDuration={2000}
+              onClose={() => setSnackbarOpen(false)}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+              <Alert
+                onClose={() => setSnackbarOpen(false)}
+                severity="success"
+                sx={{ width: '100%' }}
+              >
+                Fixture successfully created!
+              </Alert>
+            </Snackbar>
+
           </div>
         </div>
       )}

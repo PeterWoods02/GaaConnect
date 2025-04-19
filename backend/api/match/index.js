@@ -589,7 +589,7 @@ router.get('/:id/events', async (req, res) => {
       res.status(500).json({ message: 'Failed to fetch match events' });
     }
   });
-  
 
+ 
 
 export default router;

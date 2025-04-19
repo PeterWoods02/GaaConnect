@@ -6,9 +6,9 @@ import parse from "date-fns/parse";
 import startOfWeek from "date-fns/startOfWeek";
 import getDay from "date-fns/getDay";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import AddFixtureModal from "../components/addFixtureModel/index.js"; 
+import AddFixtureModal from "../components/addFixtureModel/index.js";
+import { getMatches } from "../api/matchApi.js"; 
 
-// Locales for date-fns
 const locales = {
   "en-US": require("date-fns/locale/en-US"),
 };
@@ -24,18 +24,26 @@ const localizer = dateFnsLocalizer({
 const MyCalendar = () => {
   const [eventList, setEventList] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const navigate = useNavigate(); // Hook for navigation
+  const navigate = useNavigate();
 
-  // Fetch matches from backend API
   useEffect(() => {
     const fetchMatches = async () => {
-      try {
-        const response = await fetch("http://localhost:8080/api/match");
-        const data = await response.json();
+      const token = localStorage.getItem("token");
 
-        // Transform match data to fit calendar format
+      if (!token) {
+        console.warn("No token found. User probably not logged in.");
+        return;
+      }
+
+      try {
+        // You can decode and log if needed
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        console.log("User info from token:", decoded);
+
+        const data = await getMatches(token);
+
         const events = data.map((match) => ({
-          id: match._id, // Store match ID for navigation
+          id: match._id,
           title: `${match.matchTitle} - ${match.opposition}`,
           start: new Date(match.date),
           end: new Date(match.date),
@@ -52,14 +60,12 @@ const MyCalendar = () => {
     fetchMatches();
   }, []);
 
-  // Handle click on event
   const handleSelectEvent = (event) => {
-    navigate(`/match/${event.id}`); // Navigate to match details page
+    navigate(`/match/${event.id}`);
   };
 
   return (
     <div className="p-4 w-full max-w-3xl mx-auto">
-      {/* Fixture Modal */}
       <AddFixtureModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
@@ -69,7 +75,6 @@ const MyCalendar = () => {
         }} 
       />
 
-      {/* Calendar */}
       <Calendar
         localizer={localizer}
         events={eventList}
@@ -78,7 +83,7 @@ const MyCalendar = () => {
         views={{ month: true, week: true, day: true, agenda: true }}
         defaultView="month"
         style={{ height: 500 }}
-        onSelectEvent={handleSelectEvent} // Handle click event
+        onSelectEvent={handleSelectEvent}
       />
     </div>
   );

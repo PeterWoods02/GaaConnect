@@ -2,6 +2,8 @@ import express from 'express';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from '../user/userModel.js';
+import Team from '../team/teamModel.js';
+import mongoose from 'mongoose';
 
 const router = express.Router();
 
@@ -38,13 +40,26 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
     
+    let resolvedTeams = [];
+    if (user.role !== 'admin') {
+      const userIdStr = user._id.toString(); 
+
+      const teams = await Team.find({
+        $or: [
+          { manager: userIdStr },
+          { managementTeam: userIdStr },
+          { players: userIdStr }
+        ]
+      });
+
+          resolvedTeams = teams.map(team => team._id);
+              }
+
     const payload = {
       id: user._id,
       email: user.email,
       role: user.role,
-      team: Array.isArray(user.team)
-        ? user.team.map(t => t._id)
-        : user.team?._id ? [user.team._id] : [],
+      team: resolvedTeams 
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '2h' });

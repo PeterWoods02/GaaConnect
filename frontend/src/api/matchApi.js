@@ -47,13 +47,14 @@ export const getMatchById = async (id) => {
 
 
 // Create a new match
-export const createMatch = async (matchData) => {
+export const createMatch = async (matchData, token) => {
   try {
     console.log('Sending match data:', matchData);
     const response = await fetch(BASE_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(matchData),
     });
