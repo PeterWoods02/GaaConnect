@@ -1,9 +1,16 @@
-import io from 'socket.io-client';
+import { io } from 'socket.io-client';
 
 let socket;
 
 export const connectSocket = () => {
-  socket = io('http://localhost:8080');
+  if (!socket) {
+    socket = io('http://localhost:8080');
+  }
+};
+
+export const joinUserRoom = (userId) => {
+  if (!socket) connectSocket();
+  socket.emit('joinMessagingRoom', userId);
 };
 
 export const sendAdminAction = (action) => {
@@ -33,3 +40,17 @@ export const listenToMatchUpdates = (matchId, callback) => {
     socket.off('eventUpdate', wrappedCallback);
   };
 };
+
+// listen for messages sent to the user
+export const listenToUserMessages = (callback) => {
+  if (!socket) connectSocket();
+  socket.on('receiveMessage', callback);
+};
+
+//stop listening
+export const leaveUserRoom = (userId) => {
+  if (!socket) return;
+  socket.emit('leaveMessagingRoom', userId);
+};
+
+export default socket;

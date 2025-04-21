@@ -24,6 +24,7 @@ import SearchPlayersPage from './pages/searchPlayers.js';
 import SiteHeader from './components/siteHeader/index.js';
 import { AuthProvider } from './context/authContext.js';
 import ProtectedRoute from './context/protectedRoutes.js';
+import MessageBox from './components/messageBox/index.js'
 
 const App = () => {
   return (
@@ -58,6 +59,7 @@ const App = () => {
             <Route path="/inviteManager" element={ <ProtectedRoute roles={['admin']}> <InviteManagerPage /> </ProtectedRoute>}/>
             <Route path="/searchPlayers" element={ <ProtectedRoute roles={['admin', 'coach', 'manager']}> <SearchPlayersPage /> </ProtectedRoute>}/>
            </Routes>
+           <MessageBox />
         </div>
       </AuthProvider>
     </Router>

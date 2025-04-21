@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { jwtDecode } from 'jwt-decode';
+import { connectSocket, joinUserRoom } from '../services/socketClient';
 
 const AuthContext = createContext();
 
@@ -26,9 +27,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const decoded = jwtDecode(token);
       setUser(decoded);
-      setUser(userData);
       setToken(token);
       localStorage.setItem('token', token);
+
+      connectSocket();
+      joinUserRoom(decoded.id);
     } catch (err) {
       console.error('Invalid login token');
     }

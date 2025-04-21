@@ -8,9 +8,11 @@ import matchRouter from './api/match/index.js';
 import userRouter from './api/user/index.js';
 import eventRouter from './api/event/index.js';
 import inviteRoutes from './api/invites/index.js';
+import messageRouter from './api/message/index.js';
 import './db/index.js';
 import { Server } from 'socket.io';
 import authRoutes from './api/user/authRoutes.js';
+import Message from './api/message/messageModel.js';
 
 dotenv.config();
 
@@ -53,6 +55,38 @@ io.on('connection', (socket) => {
     io.emit('match-update', actionData);
   });
 
+
+  // join personal message room
+  socket.on('joinMessagingRoom', (userId) => {
+    socket.join(userId);
+    console.log(`${userId} joined messaging room`);
+  });
+
+  socket.on('sendMessage', async ({ sender, recipient, body }) => {
+    try {
+      const newMessage = new Message({ sender, recipient, body });
+      await newMessage.save();
+
+      // Emit message to the recipient in real-time
+      io.to(recipient).emit('receiveMessage', {
+        _id: newMessage._id,
+        sender,
+        body,
+        createdAt: newMessage.createdAt,
+      });
+
+      console.log(`Message from ${sender} to ${recipient}`);
+    } catch (err) {
+      console.error('Error sending message:', err.message);
+    }
+  });
+
+  // leave room 
+  socket.on('leaveMessagingRoom', (userId) => {
+    socket.leave(userId);
+    console.log(`${userId} left messaging room`);
+  });
+
   // Handle disconnection
   socket.on('disconnect', () => {
     console.log('User disconnected');
@@ -70,6 +104,7 @@ app.use('/api/match', matchRouter);
 app.use('/api/event', eventRouter);
 app.use('/api/auth', authRoutes);
 app.use('/api/invites', inviteRoutes);
+app.use('/api/message', messageRouter);
 app.use('/uploads', express.static('public/uploads'));
 
 if (process.env.NODE_ENV !== 'test') {
