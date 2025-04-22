@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useRef} from 'react';
 import {Box,IconButton,Drawer,Typography,TextField,Button,List,ListItem,ListItemText,Divider,CircularProgress,} from '@mui/material';
 import MessageIcon from '@mui/icons-material/Message';
 import CloseIcon from '@mui/icons-material/Close';
@@ -15,43 +15,70 @@ const FloatingMessageBox = () => {
   const [sending, setSending] = useState(false);
   const [recipient, setRecipient] = useState('');
   const [viewingThreadWith, setViewingThreadWith] = useState(null);
-  const [threadMessages, setThreadMessages] = useState([]);
+  const [availableRecipients, setAvailableRecipients] = useState([]);
+  const viewingThreadRef = useRef(null);
+  const [tick, setTick] = useState(0);
 
   const token = localStorage.getItem('token');
-  const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
+  const user = useMemo(() => token ? JSON.parse(atob(token.split('.')[1])) : null, [token]);
+
+  const userId = useMemo(() => user?.id, [token]);
 
   useEffect(() => {
-    if (!user?.id) return; 
+    viewingThreadRef.current = viewingThreadWith;
+  }, [viewingThreadWith]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTick((t) => t + 1);
+    }, 20000); // every 20 seconds
+  
+    return () => clearInterval(interval); // cleanup
+  }, []);
+  
+
+  useEffect(() => {
+    if (!userId) return;
   
     connectSocket();
-    joinUserRoom(user.id);
+    joinUserRoom(userId);
   
     listenToUserMessages((msg) => {
-      console.log('📥 real-time message:', msg);
+      setMessages((prev) => [...prev, msg]);
+    
+      const currentThread = viewingThreadRef.current;
+      const msgSenderId = msg.sender?._id || msg.sender;
+    
+      if (
+        currentThread &&
+        (msgSenderId === currentThread._id || msg.recipient === currentThread._id)
+      ) {
+        console.log('Belongs to open thread ');
+      }
     });
+    
   
-    // leave room on unmount
     return () => {
-      leaveUserRoom(user.id);
+      leaveUserRoom(userId);
     };
-  }, [user]);
+  }, [userId]); 
+  
+
 
   useEffect(() => {
     const loadMessages = async () => {
-      if (!open || !token) return;
-      setLoadingMessages(true);
+      if (!token) return;
       try {
         const data = await getMessages(token);
         setMessages(data);
       } catch (err) {
-        console.error('failed to load messages');
-      } finally {
-        setLoadingMessages(false);
+        console.error('failed to refresh messages', err);
       }
     };
-
+  
     loadMessages();
-  }, [open, token]);
+  }, [tick, token]);
+  
 
   // prefill recipient for players
   useEffect(() => {
@@ -70,6 +97,35 @@ const FloatingMessageBox = () => {
     fetchManager();
   }, [user]);
 
+  useEffect(() => {
+    const loadRecipients = async () => {
+      if (!user || !user.team?.length) return;
+  
+      try {
+        const team = await getTeamById(user.team[0]);
+        const allUsers = [...(team.players || []), ...(team.manager || [])];
+        const filtered = allUsers.filter((u) => {
+          if (u._id === user.id) return false;
+          if (user.role === 'player') return u.role === 'manager' || u.role === 'admin';
+          return true;
+        });
+        setAvailableRecipients(filtered);
+      } catch (err) {
+        console.error('could not load recipients', err);
+      }
+    };
+    loadRecipients();
+  }, [user?.team?.[0], user?.id, user?.role]);
+   
+  const currentThreadMessages = useMemo(() => {
+    if (!viewingThreadWith) return [];
+    return messages.filter(
+      (msg) =>
+        msg.sender._id === viewingThreadWith._id ||
+        msg.recipient === viewingThreadWith._id
+    );
+  }, [messages, viewingThreadWith]);
+
   
 
   const handleViewThread = async (senderUser) => {
@@ -84,7 +140,6 @@ const FloatingMessageBox = () => {
           msg.recipient === senderUser._id
       );
 
-      setThreadMessages(filtered);
     } catch (err) {
       console.error('failed to load thread:', err);
     } finally {
@@ -94,23 +149,12 @@ const FloatingMessageBox = () => {
 
   const handleSend = async () => {
     if (!recipient || !messageBody.trim()) return;
-
+  
     try {
       setSending(true);
       await sendMessage({ recipient, body: messageBody }, token);
       setMessageBody('');
-      const updated = await getMessages(token);
-      setMessages(updated);
-
-      // update thread view too
-      if (viewingThreadWith) {
-        const filtered = updated.filter(
-          (msg) =>
-            msg.sender._id === viewingThreadWith._id ||
-            msg.recipient === viewingThreadWith._id
-        );
-        setThreadMessages(filtered);
-      }
+     
     } catch (err) {
       console.error('failed to send message:', err);
     } finally {
@@ -156,29 +200,26 @@ const FloatingMessageBox = () => {
         </Box>
 
         <Box sx={{ flexGrow: 1, overflowY: 'auto', mt: 2 }}>
-          {viewingThreadWith ? (
+        {viewingThreadWith ? (
             <>
               <Button size="small" onClick={() => setViewingThreadWith(null)}>
                 ← back
               </Button>
               {loadingMessages ? (
                 <CircularProgress />
-              ) : threadMessages.length === 0 ? (
+              ) : currentThreadMessages.length === 0 ? (
                 <Typography variant="body2" sx={{ mt: 2 }}>
                   no messages yet
                 </Typography>
               ) : (
                 <List>
-                  {threadMessages.map((msg) => (
-                    <React.Fragment key={msg._id}>
-                      <ListItem>
-                        <ListItemText
-                          primary={`${msg.sender.name}: ${msg.body}`}
-                          secondary={new Date(msg.createdAt).toLocaleString()}
-                        />
-                      </ListItem>
-                      <Divider />
-                    </React.Fragment>
+                  {currentThreadMessages.map((msg) => (
+                    <ListItem key={msg._id}>
+                      <ListItemText
+                        primary={`${msg.sender.name}: ${msg.body}`}
+                        secondary={new Date(msg.createdAt).toLocaleString()}
+                      />
+                    </ListItem>
                   ))}
                 </List>
               )}
@@ -191,20 +232,47 @@ const FloatingMessageBox = () => {
             </Typography>
           ) : (
             <List>
-              {messages.map((msg, i) => (
-                <React.Fragment key={msg._id || i}>
-                  <ListItem button onClick={() => handleViewThread(msg.sender)}>
-                    <ListItemText
-                      primary={`from: ${msg.sender.name}`}
-                      secondary={`${msg.body.substring(0, 50)}...`}
-                    />
-                  </ListItem>
-                  <Divider />
-                </React.Fragment>
-              ))}
+              {[...messages]
+                .reduce((acc, msg) => {
+                  if (!acc.find((m) => m.sender._id === msg.sender._id)) {
+                    acc.push(msg);
+                  }
+                  return acc;
+                }, [])
+                .map((msg) => (
+                  <React.Fragment key={msg._id}>
+                    <ListItem component="button" onClick={() => handleViewThread(msg.sender)}>
+                      <ListItemText
+                        primary={`from: ${msg.sender.name}`}
+                        secondary={`${msg.body.substring(0, 50)}...`}
+                      />
+                    </ListItem>
+                    <Divider />
+                  </React.Fragment>
+                ))}
             </List>
+
           )}
         </Box>
+
+                {availableRecipients.length > 0 && (
+          <TextField
+            select
+            fullWidth
+            label="Send to"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            SelectProps={{ native: true }}
+            sx={{ mb: 2 }}
+          >
+            <option value="">Select recipient</option>
+            {availableRecipients.map((u) => (
+              <option key={u._id} value={u._id}>
+                {u.name}
+              </option>
+            ))}
+          </TextField>
+        )}
 
         {/* Composer */}
         <Box mt={2}>

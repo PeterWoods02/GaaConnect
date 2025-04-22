@@ -64,16 +64,10 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async ({ sender, recipient, body }) => {
     try {
-      const newMessage = new Message({ sender, recipient, body });
-      await newMessage.save();
+      const newMessage = await Message.findById(newMessage._id).populate('sender', 'name _id');
 
-      // Emit message to the recipient in real-time
-      io.to(recipient).emit('receiveMessage', {
-        _id: newMessage._id,
-        sender,
-        body,
-        createdAt: newMessage.createdAt,
-      });
+      io.to(recipient).emit('receiveMessage', newMessage);
+
 
       console.log(`Message from ${sender} to ${recipient}`);
     } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Card, CardContent, Typography, Grid, CircularProgress, Box } from '@mui/material';
 import { getTeamById } from '../../api/teamsApi';
 import { getAllStatistics } from '../../api/statsApi';
@@ -8,7 +8,9 @@ const SquadOverview = () => {
   const [loading, setLoading] = useState(true);
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
-  const userTeams = user?.team || [];
+
+  //Added useMemo to prevent recreating of array
+  const userTeams = useMemo(() => user?.team || [], [token]);
 
   useEffect(() => {
     const fetchData = async () => {
