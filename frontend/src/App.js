@@ -27,6 +27,7 @@ import ProtectedRoute from './context/protectedRoutes.js';
 import MessageBox from './components/messageBox/index.js'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ContactAdmin from './pages/contactAdmin.js';
 
 const App = () => {
   return (
@@ -47,6 +48,7 @@ const App = () => {
             <Route path="/playerStats" element={<PlayerStats />} />
             <Route path="/match/team/:id" element={<DisplayTeam />} />
             <Route path="/managerSignup" element={<ManagerSignupPage />} />
+            <Route path="/contactAdmin" element={<ContactAdmin />} />
 
 
             {/* Protected Routes */}

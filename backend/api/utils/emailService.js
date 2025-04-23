@@ -35,3 +35,23 @@ export const sendManagerInvite = async (email, token) => {
 
   await transporter.sendMail(mailOptions);
 };
+
+
+export const sendSupportMessage = async ({ name, contact, date, message }) => {
+  const mailOptions = {
+    from: `"GAA Connect Support Form" <${process.env.EMAIL_USERNAME}>`,
+    to: process.env.EMAIL_USERNAME,
+    subject: `🛠️ New Issue from ${name}`,
+    html: `
+      <h2>New Support Request</h2>
+      <p><strong>Name:</strong> ${name}</p>
+      <p><strong>Contact:</strong> ${contact}</p>
+      <p><strong>Date:</strong> ${date}</p>
+      <p><strong>Message:</strong></p>
+      <p style="background:#f4f4f4;padding:12px;border-radius:4px;">${message}</p>
+    `
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+

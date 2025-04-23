@@ -1,6 +1,6 @@
 import express from 'express';
 import crypto from 'crypto';
-import { sendManagerInvite } from '../utils/emailService.js';
+import { sendManagerInvite, sendSupportMessage } from '../utils/emailService.js';
 import { authenticateToken } from '../../middleware/auth.js';
 import { checkRole } from '../../middleware/checkRole.js';
 import User from '../user/userModel.js';
@@ -98,6 +98,29 @@ router.get('/verifyInvite', async (req, res) => {
     } catch (err) {
       console.error('Error registering manager:', err);
       res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  router.post('/send', authenticateToken, async (req, res) => {
+    const { name, contact, date, message } = req.body;
+    const user = req.user;
+  
+    if (!message) return res.status(400).json({ message: 'Message is required' });
+  
+    try {
+      await sendSupportMessage({
+        fromEmail: user.email,
+        fromName: name || user.name || 'Anonymous',
+        name,
+        contact,
+        date,
+        message
+      });
+
+      res.status(200).json({ message: 'Support message sent successfully' });
+    } catch (err) {
+      console.error('Failed to send support message:', err.message);
+      res.status(500).json({ message: 'Failed to send support message' });
     }
   });
   

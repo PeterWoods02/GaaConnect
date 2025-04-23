@@ -100,6 +100,7 @@ const SiteHeader = () => {
               }}>
                 Manage Account
               </Link>
+              <Link to="/contactAdmin">Contact Admin</Link>
               {isAuthenticated ? (
                 <Link to="/" onClick={logout}>Logout</Link>
               ) : (

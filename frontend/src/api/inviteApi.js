@@ -4,7 +4,7 @@ const BASE_URL = 'http://localhost:8080/api/invites';
 export const sendManagerInvite = async (email) => {
     const token = localStorage.getItem('token');
   
-    const response = await fetch('http://localhost:8080/api/invites/inviteManager', {
+    const response = await fetch(`${BASE_URL}/inviteManager`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -56,4 +56,24 @@ export const registerManager = async ({ name, password, token }) => {
     console.error('Error registering manager:', error);
     throw error;
   }
+};
+
+export const sendSupportMessage = async ({ name, contact, date, message }) => {
+  const token = localStorage.getItem('token');
+
+  const response = await fetch(`${BASE_URL}/send`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ name, contact, date, message }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || 'Failed to send support message');
+  }
+
+  return await response.json();
 };
