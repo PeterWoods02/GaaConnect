@@ -25,6 +25,8 @@ import SiteHeader from './components/siteHeader/index.js';
 import { AuthProvider } from './context/authContext.js';
 import ProtectedRoute from './context/protectedRoutes.js';
 import MessageBox from './components/messageBox/index.js'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const App = () => {
   return (
@@ -32,6 +34,7 @@ const App = () => {
       <AuthProvider>
         <div>
           <SiteHeader />
+          <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Home />} />

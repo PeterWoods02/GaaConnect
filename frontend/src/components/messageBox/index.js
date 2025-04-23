@@ -2,10 +2,10 @@ import React, { useEffect, useState, useMemo, useRef} from 'react';
 import {Box,IconButton,Drawer,Typography,TextField,Button,List,ListItem,ListItemText,Divider,CircularProgress,} from '@mui/material';
 import MessageIcon from '@mui/icons-material/Message';
 import CloseIcon from '@mui/icons-material/Close';
-
+import { toast } from 'react-toastify';
 import { getMessages, sendMessage } from '../../api/messageApi';
 import { getTeamById } from '../../api/teamsApi';
-import { connectSocket, joinUserRoom, listenToUserMessages, leaveUserRoom } from '../../services/socketClient';
+import { connectSocket, joinUserRoom, listenToUserMessages, leaveUserRoom, sendSocketMessage } from '../../services/socketClient';
 
 const FloatingMessageBox = () => {
   const [open, setOpen] = useState(false);
@@ -35,8 +35,8 @@ const FloatingMessageBox = () => {
   
     return () => clearInterval(interval); // cleanup
   }, []);
-  
 
+  
   useEffect(() => {
     if (!userId) return;
   
@@ -44,26 +44,33 @@ const FloatingMessageBox = () => {
     joinUserRoom(userId);
   
     listenToUserMessages((msg) => {
-      setMessages((prev) => [...prev, msg]);
-    
-      const currentThread = viewingThreadRef.current;
       const msgSenderId = msg.sender?._id || msg.sender;
-    
-      if (
-        currentThread &&
-        (msgSenderId === currentThread._id || msg.recipient === currentThread._id)
-      ) {
-        console.log('Belongs to open thread ');
+      const msgRecipientId = msg.recipient?._id || msg.recipient;
+  
+      const isSender = msgSenderId === user.id;
+      const isRecipient = msgRecipientId === user.id;
+  
+      if (isRecipient && !isSender) {
+        setMessages((prev) => [...prev, msg]);
+        const currentThread = viewingThreadRef.current;
+        const isInThread =
+          currentThread &&
+          (msgSenderId === currentThread._id || msgRecipientId === currentThread._id);
+        if (!isInThread) {
+          const senderName = typeof msg.sender === 'object' ? msg.sender.name : 'Someone';
+          toast.info(`📨 New message from ${senderName}`);
+        } else {
+          console.log('Belongs to open thread ');
+        }
       }
     });
-    
   
     return () => {
       leaveUserRoom(userId);
     };
-  }, [userId]); 
+  }, [userId]);
   
-
+   
 
   useEffect(() => {
     const loadMessages = async () => {
@@ -117,15 +124,14 @@ const FloatingMessageBox = () => {
     loadRecipients();
   }, [user?.team?.[0], user?.id, user?.role]);
    
-  const currentThreadMessages = useMemo(() => {
-    if (!viewingThreadWith) return [];
-    return messages.filter(
-      (msg) =>
-        msg.sender._id === viewingThreadWith._id ||
-        msg.recipient === viewingThreadWith._id
-    );
-  }, [messages, viewingThreadWith]);
-
+  const currentThreadMessages =
+  viewingThreadWith && messages.length
+    ? messages.filter((msg) => {
+        const senderId = msg.sender?._id || msg.sender;
+        const recipientId = msg.recipient?._id || msg.recipient;
+        return senderId === viewingThreadWith._id || recipientId === viewingThreadWith._id;
+      })
+    : [];
   
 
   const handleViewThread = async (senderUser) => {
@@ -152,9 +158,9 @@ const FloatingMessageBox = () => {
   
     try {
       setSending(true);
-      await sendMessage({ recipient, body: messageBody }, token);
+      sendSocketMessage({ sender: user.id, recipient, body: messageBody });
       setMessageBody('');
-     
+      
     } catch (err) {
       console.error('failed to send message:', err);
     } finally {
@@ -216,7 +222,7 @@ const FloatingMessageBox = () => {
                   {currentThreadMessages.map((msg) => (
                     <ListItem key={msg._id}>
                       <ListItemText
-                        primary={`${msg.sender.name}: ${msg.body}`}
+                        primary={`${typeof msg.sender === 'object' ? msg.sender.name : 'Someone'}: ${msg.body}`}
                         secondary={new Date(msg.createdAt).toLocaleString()}
                       />
                     </ListItem>

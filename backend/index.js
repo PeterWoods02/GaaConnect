@@ -64,14 +64,20 @@ io.on('connection', (socket) => {
 
   socket.on('sendMessage', async ({ sender, recipient, body }) => {
     try {
-      const newMessage = await Message.findById(newMessage._id).populate('sender', 'name _id');
-
-      io.to(recipient).emit('receiveMessage', newMessage);
-
-
-      console.log(`Message from ${sender} to ${recipient}`);
+      console.log('Received message from socket:', { sender, recipient, body });
+  
+      const message = new Message({ sender, recipient, body });
+      const saved = await message.save();
+  
+      const populatedMessage = await Message.findById(saved._id).populate('sender', 'name _id');
+  
+      console.log('sending message to recipient:', recipient);
+      io.to(recipient).emit('receiveMessage', populatedMessage);
+  
+      console.log('sending message to sender:', sender);
+      io.to(sender).emit('receiveMessage', populatedMessage);
     } catch (err) {
-      console.error('Error sending message:', err.message);
+      console.error('error in sendMessage:', err.message);
     }
   });
 
