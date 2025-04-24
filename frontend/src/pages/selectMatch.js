@@ -2,26 +2,35 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Container, Card, CardContent, Typography, Button, Grid, CircularProgress } from "@mui/material";
 import { getMatches } from "../api/matchApi"; 
+import { useAuth } from "../context/authContext";
 
 const SelectMatch = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { user, token } = useAuth();
 
   useEffect(() => {
     const fetchMatches = async () => {
-      const token = localStorage.getItem("token");
+      if (!token || !user?.id) return;
+  
       try {
-        const data = await getMatches(token); 
-        setMatches(data); 
-        setLoading(false);
+        const data = await getMatches(token);
+        const upcomingMatches = data.filter(
+          (match) =>
+            match.status === "upcoming" &&
+            match.team?.manager?.includes(user.id)
+        );
+        setMatches(upcomingMatches);
       } catch (error) {
-        console.error("Failed to fetch matches:", error);
+        console.error("Error fetching matches:", error);
+      } finally {
         setLoading(false);
       }
     };
     fetchMatches();
-  }, []);
+  }, [token, user]);
+  
 
   if (loading) {
     return (

@@ -23,6 +23,13 @@ const teamSchema = new mongoose.Schema({
       ref: 'User',  // Reference to Player model
       required: false 
     }],
+    defaultLineup: {
+      type: Map,
+      of: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }
+    },
     manager: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',  // ref management model

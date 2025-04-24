@@ -2,29 +2,19 @@ import React, { useState } from 'react';
 import DropZone from '../dropZones/index.js';
 import theme from '../../assets/themes/theme.js';
 import { updateTeamPositions } from '../../api/matchApi.js';
-import { useParams } from 'react-router-dom';
+import { updateDefaultLineup } from '../../api/teamsApi.js';
+import { useParams, useLocation, useNavigate  } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
-const Pitch = () => {
+const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers }) => {
+  const navigate = useNavigate();
   const { matchId } = useParams();
-
-  const [positions, setPositions] = useState({
-    Goalkeeper: null,
-    RightCornerBack: null,
-    FullBack: null,
-    LeftCornerBack: null,
-    RightHalfBack: null,
-    CentreHalfBack: null,
-    LeftHalfBack: null,
-    Midfielder1: null,
-    Midfielder2: null,
-    RightHalfForward: null,
-    CentreHalfForward: null,
-    LeftHalfForward: null,
-    RightCornerForward: null,
-    FullForward: null,
-    LeftCornerForward: null,
-  });
-
+  const location = useLocation();
+  const isDefaultMode = new URLSearchParams(location.search).get('default') === 'true';
+  const token = localStorage.getItem('token');
+  const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
+  const teamId = user?.team?.[0];
+  
   const positionDisplayNames = {
     Goalkeeper: "Goalkeeper",
     RightCornerBack: "Right Corner Back",
@@ -62,23 +52,51 @@ const Pitch = () => {
   };
 
   const handleDrop = (position, player) => {
-    setPositions((prev) => ({
-      ...prev,
-      [position]: player,
-    }));
+    setPositions(prevPositions => {
+      const updatedPositions = { ...prevPositions };
+      let previousPosition = null;
+  
+      // remove player from their current pitch position
+      for (const key in updatedPositions) {
+        if (updatedPositions[key]?._id === player._id) {
+          updatedPositions[key] = null;
+          previousPosition = key;
+        }
+      }
+  
+      // return player to bench
+      const displacedPlayer = updatedPositions[position];
+      if (displacedPlayer && displacedPlayer._id !== player._id) {
+        setAvailablePlayers(prev => [...prev, displacedPlayer]);
+      }
+      // assign player to new position
+      updatedPositions[position] = player;
+  
+      return updatedPositions;
+    });
+    // remove player from bench 
+    setAvailablePlayers(prev => prev.filter(p => p._id !== player._id));
   };
+  
+  
+  
 
   // Handle save team button click
   const handleSaveTeam = async () => {
     try {
-      const updatedMatch = await updateTeamPositions(matchId, positions);
-      console.log('Team positions saved:', updatedMatch);
-      console.log('Match ID:', matchId);
-
-      // could show success here 
+      if (isDefaultMode) {
+        await updateDefaultLineup(teamId, positions);
+        toast.success('✅ Default team lineup saved!');
+      } else {
+        await updateTeamPositions(matchId, positions);
+        toast.success('✅ Match lineup saved!');
+      }
+      setTimeout(() => {
+        navigate(`/manageteams/${teamId}`);
+      }, 1500);
     } catch (error) {
-      console.error('Error saving team positions:', error);
-      // could show error here 
+      console.error('Error saving team:', error);
+      toast.error('❌ Failed to save team.');
     }
   };
 

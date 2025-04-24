@@ -40,6 +40,10 @@ const ManageTeams = () => {
     navigate(`/playerManagement/${teamId}`); 
   };
 
+  const handleDefaultTeamCreate = () => {
+    navigate(`/createTeam/${teamId}?default=true`);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ my: 4 }}>
       <Grid container spacing={4}>
@@ -59,6 +63,15 @@ const ManageTeams = () => {
             sx={{ mt: 4 }}
           >
             Manage Players
+          </Button>
+
+          <Button
+            variant="contained"
+            color="secondary"
+            onClick={handleDefaultTeamCreate}
+            sx={{ mt: 4 }}
+          >
+            Set Default Lineup
           </Button>
           
         </Grid>

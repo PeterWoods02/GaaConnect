@@ -5,7 +5,7 @@ import theme from '../../assets/themes/theme.js';
 const PlayerCard = ({ player }) => {
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'PLAYER',  
-    item: player,  
+    item: () => player, 
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),  // track if being dragged
     }),
@@ -30,9 +30,9 @@ const ListPlayersForTeam = ({ players }) => {
     <div style={theme.customStyles.listPlayersForTeam.playerList}>
       <h3>Available Players</h3>
       <ul>
-        {players.map((player, index) => (
-          <PlayerCard key={index} player={player} /> 
-        ))}
+      {players.map((player, index) => (
+        <PlayerCard key={player._id || index} player={player} />
+      ))}
       </ul>
     </div>
   );

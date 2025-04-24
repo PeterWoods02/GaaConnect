@@ -183,4 +183,46 @@ router.delete('/:id/players/:playerId', authenticateToken, checkRole('manager', 
   }
 });
 
+router.put('/:teamId/defaultLineup', async (req, res) => {
+  const { teamId } = req.params;
+  const { lineup } = req.body;
+
+  try {
+    const team = await Team.findById(teamId);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    team.defaultLineup = lineup; 
+    await team.save();
+
+    res.status(200).json({ message: 'Default lineup updated', team });
+  } catch (err) {
+    console.error('Failed to update default lineup:', err);
+    res.status(500).json({ message: 'Failed to update default lineup' });
+  }
+});
+
+// GET /api/team/:teamId/defaultLineup
+router.get('/:teamId/defaultLineup', async (req, res) => {
+  try {
+    const team = await Team.findById(req.params.teamId);
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+
+    const populatedLineup = {};
+
+    // Manual population for each player ID in the Map
+    for (const [position, playerId] of team.defaultLineup.entries()) {
+      const player = await User.findById(playerId).select('name _id role');
+      if (player) {
+        populatedLineup[position] = player;
+      }
+    }
+
+    res.json(populatedLineup);
+  } catch (err) {
+    console.error('Error fetching default lineup:', err);
+    res.status(500).json({ message: 'Error fetching default lineup' });
+  }
+});
+
+
 export default router;
