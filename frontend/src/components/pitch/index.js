@@ -84,11 +84,19 @@ const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers 
   // Handle save team button click
   const handleSaveTeam = async () => {
     try {
+      const benchPlayers = availablePlayers.map(player => player._id);
+  
       if (isDefaultMode) {
-        await updateDefaultLineup(teamId, positions);
+        await updateDefaultLineup(teamId, { 
+          defaultLineup: positions,
+          bench: benchPlayers
+        });
         toast.success('✅ Default team lineup saved!');
       } else {
-        await updateTeamPositions(matchId, positions);
+        await updateTeamPositions(matchId, { 
+          teamPositions: positions,
+          bench: benchPlayers
+        });
         toast.success('✅ Match lineup saved!');
       }
       setTimeout(() => {
@@ -99,7 +107,6 @@ const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers 
       toast.error('❌ Failed to save team.');
     }
   };
-
   return (
     <div
       style={{

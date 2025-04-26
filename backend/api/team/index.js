@@ -185,13 +185,14 @@ router.delete('/:id/players/:playerId', authenticateToken, checkRole('manager', 
 
 router.put('/:teamId/defaultLineup', async (req, res) => {
   const { teamId } = req.params;
-  const { lineup } = req.body;
+  const { lineup, bench } = req.body;
 
   try {
     const team = await Team.findById(teamId);
     if (!team) return res.status(404).json({ message: 'Team not found' });
 
     team.defaultLineup = lineup; 
+    team.bench = bench;
     await team.save();
 
     res.status(200).json({ message: 'Default lineup updated', team });

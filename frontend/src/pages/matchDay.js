@@ -11,22 +11,26 @@ import EventLog from '../components/matchDayComponents/eventLog';
 import { getEventsForMatch } from '../api/matchApi';
 import { listenToMatchUpdates } from '../services/socketClient';
 import { getUserById } from '../api/usersApi.js';
+import { useAuth } from '../context/authContext.js';
 
 const MatchPage = () => {
   const { id } = useParams();
-
+  const { token } = useAuth();
   const [matchData, setMatchData] = useState(null);
   const [teamAPlayers, setTeamAPlayers] = useState([]);
   const [events, setEvents] = useState([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [gamePhase, setGamePhase] = useState(0); // 0: Pre, 1: 1st Half, 2: Half Time, 3: 2nd Half, 4: Full Time
   const [scoreRefreshKey, setScoreRefreshKey] = useState(0);
-
+  const [players, setPlayers] = useState([]);
   const timerRef = useRef(null);
 
   const [showPlayerSelector, setShowPlayerSelector] = useState(false);
   const [pendingEvent, setPendingEvent] = useState(null);
 
+  const [positions, setPositions] = useState({});
+  const [bench, setBench] = useState([]);
+  
   // Fetch match and initialize timers based on backend startTime
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -43,28 +47,35 @@ const MatchPage = () => {
   
         setGamePhase(statusToPhase(match.status));
   
-        const players = match.players || {};
-        const playerIds = Array.isArray(players)
-          ? players
-          : Object.values(players);
-  
+        const teamPositionIds = Object.values(match.teamPositions || {}).filter(Boolean);
+
         const playerDetails = await Promise.all(
-          playerIds.map(async (playerId) => {
+          teamPositionIds.map(async (playerId) => {
             try {
-              return await getUserById(playerId);
+              return await getUserById(playerId, token); 
             } catch (error) {
               console.error(`Error fetching player with ID ${playerId}:`, error);
               return null;
             }
           })
         );
-  
-        setTeamAPlayers(playerDetails.filter(Boolean));
-  
+
+        const fetchedPlayers = playerDetails.filter(Boolean);
+        setPlayers(fetchedPlayers);
+
+        // setup positions and bench from teamPositions
+        const pitchAssignments = match.teamPositions || {};
+        setPositions(pitchAssignments);
+        
+
+        const assignedIds = Object.values(pitchAssignments).map(p => p?._id);
+        const benchPlayers = fetchedPlayers.filter(p => !assignedIds.includes(p._id));
+        setBench(benchPlayers);
+
         const fetchedEvents = await getEventsForMatch(id);
         setEvents(fetchedEvents);
       } catch (error) {
-        console.error('Error fetching match details:', error);
+        console.error('error fetching match details:', error);
       }
     };
   
@@ -91,16 +102,6 @@ const MatchPage = () => {
     return () => unsubscribe();
   }, [id]);
   
-  
-  const fetchAndSetEvents = async () => {
-    try {
-      const updatedEvents = await getEventsForMatch(id);
-      setEvents(updatedEvents);
-    } catch (err) {
-      console.error('Error refreshing events:', err);
-    }
-  };
-
   const statusToPhase = (status) => {
     switch (status) {
       case 'upcoming': return 0;
@@ -189,13 +190,23 @@ const MatchPage = () => {
     if (startTime) payload.startTime = startTime;
 
     try {
-      const updated = await updateMatch(id, payload);
+      const updated = await updateMatch(id, payload, token);
       setMatchData(updated);
       sendAdminAction({ id, type: 'statusUpdate', status: statusUpdate });
     } catch (error) {
       console.error('Failed to update match status:', error);
     }
   };
+
+  // helper functions to fix snake case
+  const fixEventType = (eventType) => {
+    const map = {
+      yellowCard: 'yellow_card',
+      redCard: 'red_card'
+    };
+    return map[eventType] || eventType; 
+  };
+  
 
   // Handle Admin Event Log 
   const handleAdminLogEvent = (team, eventType) => {
@@ -211,7 +222,7 @@ const MatchPage = () => {
     try {
       // Send event to backend
       await logEvent(id, {
-        type: eventType,
+        type: fixEventType(eventType),
         teamId: eventData.team === 'teamA' ? matchData.team : null,
         playerId: eventData.player?._id || eventData.player || null,
         minute: elapsedTime,
@@ -298,7 +309,7 @@ const MatchPage = () => {
         {/* Admin Controls */}
         <Grid item xs={12}>
           <Paper elevation={3} sx={{ p: 3 }}>
-            <AdminControls
+          <AdminControls
               matchId={id}
               matchData={matchData}
               setMatchData={setMatchData}
@@ -306,12 +317,18 @@ const MatchPage = () => {
               gamePhase={gamePhase}
               elapsedTime={elapsedTime}
               onPhaseChange={handlePhaseChange}
+              positions={positions}               
+              setPositions={setPositions}
+              bench={bench}
+              setBench={setBench}
+              token={token}
+              players={players}
             />
 
 
             <PlayerSelectorDialog
               open={showPlayerSelector}
-              players={teamAPlayers}
+              players={players}
               onSelect={handlePlayerSelected}
             />
           </Paper>

@@ -72,12 +72,13 @@ export const createMatch = async (matchData, token) => {
 };
 
 // Update an existing match by ID
-export const updateMatch = async (id, matchData) => {
+export const updateMatch = async (id, matchData, token) => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(matchData),
     });
@@ -210,12 +211,13 @@ export const deleteEvent = async (matchId, eventId) => {
 
 
 // Log an event (goal, card, substitution)
-export const logEvent = async (id, eventData) => {
+export const logEvent = async (id, eventData, token) => {
   try {
     const response = await fetch(`${BASE_URL}/${id}/event`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
       },
       body: JSON.stringify(eventData),
     });

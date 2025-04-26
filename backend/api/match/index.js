@@ -64,6 +64,14 @@ router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), asyn
         }
 
         // if no status, default to 'upcoming' for a fixture
+        const teamPositions = {};
+          if (existingTeam.defaultLineup) {
+            for (const [position, playerId] of existingTeam.defaultLineup.entries()) {
+              if (position !== 'bench') {
+                teamPositions[position] = playerId;
+              }
+            }
+          }
         const matchData = {
             matchTitle,
             date,
@@ -74,6 +82,7 @@ router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), asyn
             statistics,
             team,
             admissionFee,
+            teamPositions,
             status: status || 'upcoming',  
         };
 

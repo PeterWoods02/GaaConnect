@@ -30,6 +30,10 @@ const teamSchema = new mongoose.Schema({
         ref: 'User'
       }
     },
+    bench: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
     manager: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',  // ref management model

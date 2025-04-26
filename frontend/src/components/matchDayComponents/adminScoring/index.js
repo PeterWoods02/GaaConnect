@@ -10,13 +10,15 @@ import { getTeamForMatch, logEvent, getMatchById } from '../../../api/matchApi';
 import { getUserById } from '../../../api/usersApi';
 import { sendAdminAction } from '../../../services/socketClient';
 
-const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTime, onPhaseChange }) => {
+const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTime, onPhaseChange, positions, setPositions, bench, setBench, token }) => {
   const [openPlayerSelect, setOpenPlayerSelect] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState('');
   const [players, setPlayers] = useState([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
   const [team, setTeam] = useState('home');
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
+  const [selectedPlayerOnId, setSelectedPlayerOnId] = useState('');
+  const [selectedPlayerOffPosition, setSelectedPlayerOffPosition] = useState('');  
 
   // Handle the game phase buttons
   const handleGamePhaseClick = () => {
@@ -69,21 +71,32 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
   };
 
   const fetchPlayers = async () => {
-    try {
-      setLoadingPlayers(true);
-      const teamData = await getTeamForMatch(matchId);
-      const playerIds = Object.values(teamData);
-      const playerDetails = await Promise.all(
-        playerIds.map(id => getUserById(id))
-      );
-      setPlayers(playerDetails.filter(Boolean));
-    } catch (error) {
-      console.error('Error fetching players:', error);
-    } finally {
-      setLoadingPlayers(false);
-    }
-  };
+    setLoadingPlayers(true);
 
+    if (selectedEvent === 'substitution') {
+      setPlayers(bench);
+      setLoadingPlayers(false);
+      return;
+    }
+  
+    const playerIds = Object.values(positions).filter(Boolean);
+    const playerDetails = await Promise.all(
+      playerIds.map(async id => {
+        try {
+          return await getUserById(id, token);
+        } catch (err) {
+          console.error("Failed to fetch player:", id);
+          return null;
+        }
+      })
+    );
+  
+    const fullPlayers = playerDetails.filter(Boolean);
+    setPlayers(fullPlayers);
+    setLoadingPlayers(false);
+  };
+  
+  
   const handleLogEvent = async (eventType, player, teamType) => {
     const teamId = teamType === 'home'
   ? (typeof matchData.team === 'object' ? matchData.team._id : matchData.team)
@@ -99,7 +112,7 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
 
     try {
       
-      await logEvent(matchId, eventPayload);
+      await logEvent(matchId, eventPayload, token);
 
       
       const updatedMatch = await getMatchById(matchId);
@@ -122,9 +135,46 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
     }
   };
 
+  const fixEventType = (eventType) => {
+    const map = {
+      yellowCard: 'yellow_card',
+      redCard: 'red_card',
+    };
+    return map[eventType] || eventType;
+  };
+
   const handleConfirmPlayer = () => {
-    const selectedPlayer = players.find(p => p._id === selectedPlayerId);
-    handleLogEvent(selectedEvent, selectedPlayer, team);
+    if (selectedEvent === 'substitution') {
+      const subOnPlayer = bench.find(p => p._id === selectedPlayerOnId);
+      const subOffPlayer = positions[selectedPlayerOffPosition];
+  
+      if (subOnPlayer && subOffPlayer) {
+        setPositions(prev => ({
+          ...prev,
+          [selectedPlayerOffPosition]: subOnPlayer,
+        }));
+  
+        setBench(prev => {
+          const withoutSubOn = prev.filter(p => p._id !== subOnPlayer._id);
+          return [...withoutSubOn, subOffPlayer];
+        });
+  
+        handleLogEvent('substitution', subOnPlayer, team);
+      }
+    } else {
+      const selectedPlayer = players.find(p => p._id === selectedPlayerId);
+  
+      if (selectedPlayer) {
+        handleLogEvent(fixEventType(selectedEvent), selectedPlayer, team);
+      } else {
+        console.error('No player found for selected ID:', selectedPlayerId);
+      }
+    }
+  
+    setOpenPlayerSelect(false);
+    setSelectedPlayerId('');
+    setSelectedPlayerOnId('');
+    setSelectedPlayerOffPosition('');
   };
 
   const handleCancelPlayerSelection = () => {
@@ -132,6 +182,11 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
     setSelectedPlayerId('');
   };
 
+  const playerMap = players.reduce((acc, player) => {
+    acc[player._id] = player.name;
+    return acc;
+  }, {});
+  
   return (
     <Paper elevation={3} sx={{ p: 3 }}>
       <Typography variant="h5" gutterBottom>Admin Controls</Typography>
@@ -191,11 +246,41 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
         <DialogContent>
           {loadingPlayers ? (
             <CircularProgress />
+          ) : selectedEvent === 'substitution' ? (
+            <>
+              <Typography>Select Player Coming Off (on pitch):</Typography>
+            
+              <Select
+                fullWidth
+                value={selectedPlayerOffPosition}
+                onChange={(e) => setSelectedPlayerOffPosition(e.target.value)}
+              >
+                {Object.entries(positions).map(([position, playerId]) => (
+                  playerId && (
+                    <MenuItem key={playerId} value={position}>
+                      {playerMap[playerId] || playerId} ({position})
+                    </MenuItem>
+                  )
+                ))}
+              </Select>
+              <Typography sx={{ mt: 2 }}>Select Player Coming On (from bench):</Typography>
+              <Select
+                fullWidth
+                value={selectedPlayerOnId}
+                onChange={(e) => setSelectedPlayerOnId(e.target.value)}
+              >
+                {bench.map(player => (
+                  <MenuItem key={player._id} value={player._id}>
+                    {player.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </>
           ) : (
             <Select
               fullWidth
               value={selectedPlayerId}
-              onChange={e => setSelectedPlayerId(e.target.value)}
+              onChange={(e) => setSelectedPlayerId(e.target.value)}
             >
               {players.map(player => (
                 <MenuItem key={player._id} value={player._id}>

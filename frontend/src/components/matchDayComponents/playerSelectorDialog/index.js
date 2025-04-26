@@ -20,18 +20,18 @@ const PlayerSelectorDialog = ({ open, onClose, players, onPlayerSelect, loading 
         ) : (
           <Select 
             fullWidth 
-            value={selectedPlayer ? selectedPlayer.id : ''} 
+            value={selectedPlayer?._id || ''} 
             onChange={(e) => {
               const selected = players.find(p => p._id === e.target.value);
               setSelectedPlayer(selected); 
             }}
           >
             {players.map((player) => (
-              <MenuItem key={player.id} value={player.id}>
+              <MenuItem key={player._id} value={player._id}>
                 {player.name}
               </MenuItem>
             ))}
-      </Select>
+          </Select>
         )}
       </DialogContent>
       <DialogActions>

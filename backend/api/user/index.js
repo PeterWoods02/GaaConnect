@@ -43,17 +43,20 @@ router.get('/players', authenticateToken, async (req, res) => {
 // GET user by ID (self or admin)
 router.get('/:id', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).populate('statistics');
+    const user = await User.findById(req.params.id).populate('statistics').populate('team');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const userId = req.user._id || req.user.id;
 
-    if (
-      req.user.role !== 'admin' &&
-      userId.toString() !== req.params.id
-    )
-  {  
-      return res.status(403).json({ message: 'Forbidden' });
+    if (req.user.role !== 'admin' && req.user.role !== 'manager' && req.user.role !== 'coach') {
+      const isSelf = userId.toString() === req.params.id;
+      const sharedTeam = user.team?.some(teamId =>
+        req.user.team?.map(id => id.toString()).includes(teamId.toString())
+      );
+
+      if (!isSelf && !sharedTeam) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
     }
 
     res.json(user);
