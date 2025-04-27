@@ -28,34 +28,41 @@ const MyCalendar = () => {
 
   useEffect(() => {
     const fetchMatches = async () => {
-      const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
 
-      if (!token) {
-        console.warn("No token found. User probably not logged in.");
-        return;
-      }
+  if (!token) {
+    console.warn("No token found. User probably not logged in.");
+    return;
+  }
 
-      try {
-        // You can decode and log if needed
-        const decoded = JSON.parse(atob(token.split('.')[1]));
-        console.log("User info from token:", decoded);
+  try {
+    const decoded = JSON.parse(atob(token.split('.')[1]));
+    console.log("User info from token:", decoded);
 
-        const data = await getMatches(token);
+    const data = await getMatches(token);
 
-        const events = data.map((match) => ({
-          id: match._id,
-          title: `${match.matchTitle} - ${match.opposition}`,
-          start: new Date(match.date),
-          end: new Date(match.date),
-          venue: match.location,
-          admission: match.admissionFee ? `€${match.admissionFee}` : "Free",
-        }));
+    // filter matches where user is involved 
+    let filteredMatches = data;
+    if (decoded.role !== 'admin') {
+      // Manager only show matches their team is involved
+      const managerTeamIds = Array.isArray(decoded.team) ? decoded.team : [decoded.team];
+      filteredMatches = data.filter(match => match.team && managerTeamIds.includes(match.team._id || match.team));
+    }
 
-        setEventList(events);
-      } catch (error) {
-        console.error("Error fetching matches:", error);
-      }
-    };
+    const events = filteredMatches.map((match) => ({
+      id: match._id,
+      title: `${match.matchTitle} - ${match.opposition}`,
+      start: new Date(match.date),
+      end: new Date(match.date),
+      venue: match.location,
+      admission: match.admissionFee ? `€${match.admissionFee}` : "Free",
+    }));
+
+    setEventList(events);
+  } catch (error) {
+    console.error("Error fetching matches:", error);
+  }
+};
 
     fetchMatches();
   }, []);

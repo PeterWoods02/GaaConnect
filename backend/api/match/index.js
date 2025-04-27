@@ -190,18 +190,31 @@ router.get("/:id/squad", async (req, res) => {
 
 // Delete a match
 router.delete('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
-    try {
-        const deletedMatch = await Match.findByIdAndDelete(req.params.id);
+  try {
+    const match = await Match.findById(req.params.id);
 
-        if (!deletedMatch) {
-            return res.status(404).json({ message: 'Match not found' });
-        }
-
-        res.status(200).json({ message: 'Match deleted successfully' });
-    } catch (error) {
-        console.error('Error deleting match:', error);
-        res.status(500).json({ message: 'Failed to delete match' });
+    if (!match) {
+      return res.status(404).json({ message: 'Match not found' });
     }
+
+    // block deletion if match is completed
+    if (match.status === 'fullTime') {
+      return res.status(403).json({ message: 'Cannot delete a completed match.' });
+    }
+
+    // block deletion if match has data
+    if ((match.events && match.events.length > 0) || (match.playerContributions && match.playerContributions.size > 0)) {
+      return res.status(403).json({ message: 'Cannot delete a match with events or player contributions.' });
+    }
+
+    // safe to delete
+    await Match.findByIdAndDelete(req.params.id);
+
+    res.status(200).json({ message: 'Match deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting match:', error);
+    res.status(500).json({ message: 'Failed to delete match' });
+  }
 });
 
 //Match lifecyle functions

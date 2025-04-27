@@ -136,10 +136,14 @@ export const getTeamForMatch = async (matchId) => {
 
 
 // Delete a match by ID
-export const deleteMatch = async (id) => {
+export const deleteMatch = async (id, token) => {
   try {
     const response = await fetch(`${BASE_URL}/${id}`, {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
 
     if (!response.ok) {
