@@ -95,15 +95,17 @@ export const updateMatch = async (id, matchData, token) => {
 };
 
 // Update or create team positions for a match
-export const updateTeamPositions = async (matchId, teamPositions) => {
+export const updateTeamPositions = async (matchId, { teamPositions, bench }) => {
   try {
+    const token = localStorage.getItem('token');
     const response = await fetch(`${BASE_URL}/${matchId}/team`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ teamPositions }), 
-    });
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: JSON.stringify({ teamPositions, bench }),
+  });
 
     if (!response.ok) {
       handleError('updating team positions', 'Failed to update team positions');

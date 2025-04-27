@@ -41,7 +41,7 @@ const ManageTeams = () => {
   };
 
   const handleDefaultTeamCreate = () => {
-    navigate(`/createTeam/${teamId}?default=true`);
+    navigate(`/createTeam/default/${teamId}?default=true`);
   };
 
   return (

@@ -25,11 +25,12 @@ const teamSchema = new mongoose.Schema({
     }],
     defaultLineup: {
       type: Map,
-      of: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
-      }
-    },
+        of: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+        },
+        default: {}
+      },
     bench: [{
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'

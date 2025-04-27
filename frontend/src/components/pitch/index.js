@@ -6,14 +6,12 @@ import { updateDefaultLineup } from '../../api/teamsApi.js';
 import { useParams, useLocation, useNavigate  } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers }) => {
+const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers, teamId }) => {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const location = useLocation();
   const isDefaultMode = new URLSearchParams(location.search).get('default') === 'true';
-  const token = localStorage.getItem('token');
-  const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
-  const teamId = user?.team?.[0];
+  
   
   const positionDisplayNames = {
     Goalkeeper: "Goalkeeper",
@@ -85,16 +83,24 @@ const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers 
   const handleSaveTeam = async () => {
     try {
       const benchPlayers = availablePlayers.map(player => player._id);
-  
+      
+      // Filter out empty positions
+      const lineupWithIdsOnly = {};
+      for (const [position, player] of Object.entries(positions)) {
+        if (player) {
+          lineupWithIdsOnly[position] = player._id;
+        }
+      }
+      
       if (isDefaultMode) {
         await updateDefaultLineup(teamId, { 
-          defaultLineup: positions,
+          defaultLineup: lineupWithIdsOnly,
           bench: benchPlayers
         });
         toast.success('✅ Default team lineup saved!');
       } else {
         await updateTeamPositions(matchId, { 
-          teamPositions: positions,
+          teamPositions: lineupWithIdsOnly,
           bench: benchPlayers
         });
         toast.success('✅ Match lineup saved!');

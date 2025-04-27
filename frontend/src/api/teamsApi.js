@@ -152,7 +152,7 @@ export const removePlayerFromTeam = async (teamId, playerId, token) => {
   }
 };
 
-export const updateDefaultLineup = async (teamId, {lineup, bench}) => {
+export const updateDefaultLineup = async (teamId, {defaultLineup, bench}) => {
   const token = localStorage.getItem('token');
   const res = await fetch(`${BASE_URL}/${teamId}/defaultLineup`, {
     method: 'PUT',
@@ -160,7 +160,7 @@ export const updateDefaultLineup = async (teamId, {lineup, bench}) => {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
     },
-    body: JSON.stringify({ lineup, bench }),
+    body: JSON.stringify({ defaultLineup, bench }),
   });
 
   if (!res.ok) throw new Error('Failed to update default lineup');

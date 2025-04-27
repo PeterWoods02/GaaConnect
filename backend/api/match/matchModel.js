@@ -49,9 +49,16 @@ const matchSchema = new mongoose.Schema({
     }],
     teamPositions: {
         type: Map,
-        of: String,  // can store player names or player IDs
+        of: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User'
+        },
         default: {}
       },
+      bench: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
     playerContributions: {  //store stats for individuals for set match
         type: Map,
         of: {

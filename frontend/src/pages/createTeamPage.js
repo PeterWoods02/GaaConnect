@@ -4,15 +4,16 @@ import ListPlayersForTeam from '../components/listPlayersForTeam/index.js';
 import Pitch from '../components/pitch/index.js'; 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
+import { getMatchById } from '../api/matchApi.js';
 
 const CreateTeam = () => {
   const [players, setPlayers] = useState([]);
   const [availablePlayers, setAvailablePlayers] = useState([]);
-  const { matchId } = useParams(); // assuming route is /createTeam/:matchId
-  const token = localStorage.getItem('token');
-  const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
-  const teamId = user?.team?.[0];
+  const { matchId, teamId } = useParams();
+  const location = useLocation();
+  const isDefaultMode = location.pathname.includes('/default/');
+  const [teamIdToUse, setTeamIdToUse] = useState(null);
 
   const [positions, setPositions] = useState({
     Goalkeeper: null,
@@ -31,74 +32,141 @@ const CreateTeam = () => {
     FullForward: null,
     LeftCornerForward: null,
   });
-  
+
   useEffect(() => {
     const fetchTeamData = async () => {
       try {
-        const team = await getTeamById(teamId);
+        let localTeamId = teamId;
+        let startingPositions = {};
+        let startingBench = [];
+    
+        if (!teamId && matchId) {
+          const match = await getMatchById(matchId);
+          localTeamId = match?.team?._id || match?.team;
+    
+          if (!localTeamId) {
+            console.error('No team ID available from match.');
+            setPlayers([]);
+            setAvailablePlayers([]);
+            return;
+          }
+    
+          // if not default mode pull from Match
+          if (!isDefaultMode) {
+            startingPositions = match.teamPositions || {};
+            startingBench = match.bench || [];
+          }
+        }
+    
+        if (!localTeamId) {
+          console.error('No team ID available.');
+          setPlayers([]);
+          setAvailablePlayers([]);
+          return;
+        }
+    
+        setTeamIdToUse(localTeamId);
+    
+        const team = await getTeamById(localTeamId);
+        if (!team || !team.players || team.players.length === 0) {
+          setPlayers([]);
+          setAvailablePlayers([]);
+          return;
+        }
+    
         const teamPlayers = (team.players || []).filter(p => p?.role === 'player' && p?._id);
         setPlayers(teamPlayers);
-  
-        
-        const defaultLineup = await getDefaultLineup(teamId);
-        if (defaultLineup && Object.keys(defaultLineup).length > 0) {
-          setPositions(defaultLineup);
+    
+        // if default mode pull Team from defaultLineup
+        if (isDefaultMode) {
+          const { defaultLineup = {}, bench = [] } = await getDefaultLineup(localTeamId);
+          startingPositions = defaultLineup;
+          startingBench = bench;
         }
-  
-        const assignedIds = Object.values(defaultLineup || {}).map(p => p?._id);
-        const filtered = teamPlayers.filter(p => p && !assignedIds.includes(p._id));
-        setAvailablePlayers(filtered);
-  
+    
+        if (Object.keys(startingPositions).length > 0) {
+          const resolvedPositions = {};
+
+            for (const [position, playerOrId] of Object.entries(startingPositions)) {
+              if (playerOrId) {
+                if (typeof playerOrId === 'object' && playerOrId._id) {
+                  // Already a full player object
+                  resolvedPositions[position] = playerOrId;
+                } else {
+                  // if its id resolve to object
+                  const playerObj = teamPlayers.find(p => p._id === playerOrId);
+                  if (playerObj) {
+                    resolvedPositions[position] = playerObj;
+                  }
+                }
+              }
+            }
+
+          setPositions(resolvedPositions);
+          if (startingBench.length > 0) {
+            const benchPlayers = teamPlayers.filter(p => startingBench.some(b => b._id === p._id || b === p._id));
+            setAvailablePlayers(benchPlayers);
+          } else {
+            const assignedIds = Object.values(startingPositions).filter(Boolean);
+            const filtered = teamPlayers.filter(p => p && !assignedIds.includes(p._id));
+            setAvailablePlayers(filtered);
+          }
+        } else {
+          setAvailablePlayers(teamPlayers);
+        }
+    
       } catch (error) {
         console.error('Error loading team data:', error);
+        setAvailablePlayers([]);
       }
     };
-  
-    if (teamId) fetchTeamData();
-  }, [teamId]);
+    
+    if (teamId || matchId) fetchTeamData();
+  }, [teamId, matchId]);
 
   return (
     <DndProvider backend={HTML5Backend}>
       <div
-  style={{
-    display: 'flex',
-    gap: '30px',
-    padding: '30px',
-    backgroundColor: '#f4f4f4',
-    minHeight: '100vh',
-  }}
->
-  <div
-    style={{
-      flex: '1',
-      maxWidth: '300px',
-      backgroundColor: 'white',
-      padding: '20px',
-      borderRadius: '8px',
-      boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-      overflowY: 'auto',
-      height: 'calc(100vh - 60px)',
-    }}
-  >
-    <ListPlayersForTeam players={availablePlayers} />
-  </div>
+        style={{
+          display: 'flex',
+          gap: '30px',
+          padding: '30px',
+          backgroundColor: '#f4f4f4',
+          minHeight: '100vh',
+        }}
+      >
+        <div
+          style={{
+            flex: '1',
+            maxWidth: '300px',
+            backgroundColor: 'white',
+            padding: '20px',
+            borderRadius: '8px',
+            boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+            overflowY: 'auto',
+            height: 'calc(100vh - 60px)',
+          }}
+        >
+          <ListPlayersForTeam players={availablePlayers} />
+        </div>
 
-  <div
-    style={{
-      flex: '2',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-  >
-    <Pitch
-      positions={positions}
-      setPositions={setPositions}
-      availablePlayers={availablePlayers}
-      setAvailablePlayers={setAvailablePlayers}
-    />
-  </div>
-</div>
+        <div
+          style={{
+            flex: '2',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Pitch
+            positions={positions}
+            setPositions={setPositions}
+            availablePlayers={availablePlayers}
+            setAvailablePlayers={setAvailablePlayers}
+            teamId={teamIdToUse}
+          />
+        </div>
+      </div>
     </DndProvider>
   );
 };

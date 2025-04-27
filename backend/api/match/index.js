@@ -83,6 +83,7 @@ router.post('/', authenticateToken, checkRole('manager', 'coach', 'admin'), asyn
             team,
             admissionFee,
             teamPositions,
+            bench: existingTeam.bench || [],
             status: status || 'upcoming',  
         };
 
@@ -137,7 +138,7 @@ router.put('/:id', authenticateToken, checkRole('manager', 'coach', 'admin'), as
 
 // Route to update or create team positions for a match
 router.put('/:id/team', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
-    const { teamPositions } = req.body; 
+    const { teamPositions, bench } = req.body; 
 
     try {
         const match = await Match.findById(req.params.id);
@@ -153,7 +154,8 @@ router.put('/:id/team', authenticateToken, checkRole('manager', 'coach', 'admin'
 
         // Update the teamPositions 
         match.teamPositions = teamPositions; 
-
+        match.bench = bench;
+        
         await match.save();
 
         res.status(200).json(match);
