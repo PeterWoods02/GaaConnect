@@ -11,6 +11,11 @@ const eventSchema = new mongoose.Schema({
         ref: 'User', 
         required: false, 
     },
+    playerOff: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: false,
+      },
     team: {
         type: String, 
         required: true,

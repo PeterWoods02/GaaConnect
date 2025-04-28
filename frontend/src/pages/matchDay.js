@@ -261,6 +261,11 @@ const MatchPage = () => {
     }
   };
 
+  const playerMap = players.reduce((acc, player) => {
+    acc[player._id] = player;
+    return acc;
+  }, {});
+
   if (!matchData) {
     return (
       <Container>
@@ -340,7 +345,14 @@ const MatchPage = () => {
             <Typography variant="h5" gutterBottom>
               Match Events
             </Typography>
-            <EventLog events={events} matchId={id} onUpdate={setEvents} />
+            <EventLog events={events} matchId={id} onUpdate={setEvents} 
+            token={token}
+            positions={positions}
+            setPositions={setPositions}
+            bench={bench}
+            setBench={setBench}
+            playerMap={playerMap}
+            setMatchData={setMatchData}/>
           </Paper>
         </Grid>
       </Grid>

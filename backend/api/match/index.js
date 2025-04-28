@@ -330,7 +330,8 @@ router.post('/:id/score', authenticateToken, checkRole('manager', 'coach', 'admi
 
 
 router.post('/:id/event', authenticateToken, checkRole('manager', 'coach', 'admin'), async (req, res) => {
-    const { type, teamId, playerId, minute } = req.body;
+    const { type, teamId, playerId, playerOffId, minute } = req.body;
+    console.log('Saving Event: player:', playerId, 'playerOffId:', playerOffId);
 
     if (teamId && !mongoose.Types.ObjectId.isValid(teamId)) {
         return res.status(400).json({ message: 'Invalid team ID' });
@@ -370,7 +371,8 @@ router.post('/:id/event', authenticateToken, checkRole('manager', 'coach', 'admi
 
         const event = new Event({
             match: match._id,
-            player: player ? player._id : null,
+            player: player ? player._id : null,   
+            playerOff: playerOffId || null,
             team: teamId ? team._id : match.opposition,
             type,
             minute,
@@ -604,6 +606,7 @@ router.get('/:id/events', async (req, res) => {
     try {
       const events = await Event.find({ match: req.params.id })
         .populate('player')
+        .populate('playerOff')
         .populate('team', 'name')
         .sort({ minute: 1 }); 
   

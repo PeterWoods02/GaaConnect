@@ -118,6 +118,29 @@ export const updateTeamPositions = async (matchId, { teamPositions, bench }) => 
   }
 };
 
+export const updateTeamPositionsLive = async (matchId, teamPositions, bench, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/${matchId}/team`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+      body: JSON.stringify({ teamPositions, bench }),
+    });
+
+    if (!response.ok) {
+      handleError('updating team positions', response);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    handleError('updating team positions', null, error);
+  }
+};
+
+
 // get the team
 export const getTeamForMatch = async (matchId) => {
   try {
@@ -198,10 +221,14 @@ export const updateScore = async (id, scoreData) => {
 };
 
 // Delete an event from a match
-export const deleteEvent = async (matchId, eventId) => {
+export const deleteEvent = async (matchId, eventId, token) => {
   try {
     const response = await fetch(`${BASE_URL}/${matchId}/event/${eventId}`, {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
     });
 
     if (!response.ok) {
