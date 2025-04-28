@@ -38,40 +38,41 @@ const MatchPage = () => {
         const match = await getMatchById(id);
         setMatchData(match);
   
-        if (match.startTime && match.status === 'live') {
+        if (match.startTime) {
           const now = Date.now();
-          const timeDiffSeconds = Math.floor((now - match.startTime) / 1000);
-          setElapsedTime(timeDiffSeconds);
-          startTimer();
+          const seconds = Math.floor((now - match.startTime) / 1000);
+          setElapsedTime(seconds);
+          setGamePhase(statusToPhase(match.status, seconds));
+          if (match.status !== 'fullTime') {
+            startTimer();  
+          }
+        } else {
+          setGamePhase(statusToPhase(match.status, 0));
         }
   
-        setGamePhase(statusToPhase(match.status));
-  
         const teamPositionIds = Object.values(match.teamPositions || {}).filter(Boolean);
-
+  
         const playerDetails = await Promise.all(
           teamPositionIds.map(async (playerId) => {
             try {
-              return await getUserById(playerId, token); 
+              return await getUserById(playerId, token);
             } catch (error) {
               console.error(`Error fetching player with ID ${playerId}:`, error);
               return null;
             }
           })
         );
-
+  
         const fetchedPlayers = playerDetails.filter(Boolean);
         setPlayers(fetchedPlayers);
-
-        // setup positions and bench from teamPositions
+  
         const pitchAssignments = match.teamPositions || {};
         setPositions(pitchAssignments);
-        
-
+  
         const assignedIds = Object.values(pitchAssignments).map(p => p?._id);
         const benchPlayers = fetchedPlayers.filter(p => !assignedIds.includes(p._id));
         setBench(benchPlayers);
-
+  
         const fetchedEvents = await getEventsForMatch(id);
         setEvents(fetchedEvents);
       } catch (error) {
@@ -94,18 +95,19 @@ const MatchPage = () => {
       if (action === 'eventUpdate' || action.type === 'eventUpdate') {
         fetchAndSetEvents();
         getMatchById(id).then(setMatchData);
-        setScoreRefreshKey(prev => prev + 1); 
+        setScoreRefreshKey(prev => prev + 1);
       }
     });
-    
   
     return () => unsubscribe();
   }, [id]);
   
-  const statusToPhase = (status) => {
+  
+  const statusToPhase = (status, elapsed = 0) => {
     switch (status) {
       case 'upcoming': return 0;
-      case 'live': return gamePhase === 3 ? 3 : 1; // Simplified for now
+      case 'live':
+        return elapsed >= 1800 ? 3 : 1;  
       case 'halfTime': return 2;
       case 'fullTime': return 4;
       default: return 0;
@@ -113,23 +115,21 @@ const MatchPage = () => {
   };
 
   // timer Management
-  const MAX_GAME_TIME = 90 * 60; // 90 minutes and stop timer
+  const MAX_GAME_TIME = 90 * 60; 
 
   const startTimer = () => {
-    if (!timerRef.current) {
-      timerRef.current = setInterval(() => {
-        setElapsedTime((prev) => {
-          if (prev >= MAX_GAME_TIME) {
-            clearInterval(timerRef.current);
-            timerRef.current = null;
-            sendAdminAction({ id, type: 'timerStop' }); 
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-      sendAdminAction({ id, type: 'timerStart' });
-    }
+    if (timerRef.current) return;
+    timerRef.current = setInterval(() => {
+      setElapsedTime((prev) => {
+        if (prev >= MAX_GAME_TIME) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          sendAdminAction({ id, type: 'timerStop' }); 
+          return prev;
+        }
+        return prev + 1;
+      });
+    }, 1000);
   };
 
 
@@ -147,55 +147,52 @@ const MatchPage = () => {
 
   //  Game Phase Changes 
   const handlePhaseChange = async (nextPhase) => {
-    setGamePhase(nextPhase);
-
     let statusUpdate = '';
-    let startTime = null;
-
+    let newStartTime = null;
+  
     switch (nextPhase) {
       case 0:
         statusUpdate = 'upcoming';
         stopTimer();
         break;
-
-      case 1:
+      case 1: // First Half
         statusUpdate = 'live';
-        startTime = Date.now();
+        newStartTime = Date.now();
+        stopTimer();
         setElapsedTime(0);
         startTimer();
         break;
-
-      case 2:
+      case 2: // Half Time
         statusUpdate = 'halfTime';
         pauseTimer();
         break;
-
-      case 3:
+      case 3: // Second Half
         statusUpdate = 'live';
-        startTime = Date.now();
-        setElapsedTime(30 * 60); // second half starts at 30 mins (1800 seconds)
+        newStartTime = Date.now() - (30 * 60 * 1000); 
+        stopTimer();
+        setElapsedTime(1800); // 30:00 start
         startTimer();
         break;
-
       case 4:
         statusUpdate = 'fullTime';
         stopTimer();
         break;
-
       default:
         break;
     }
-
+  
     const payload = { status: statusUpdate };
-    if (startTime) payload.startTime = startTime;
-
+    if (newStartTime) payload.startTime = newStartTime;
+  
     try {
       const updated = await updateMatch(id, payload, token);
       setMatchData(updated);
-      sendAdminAction({ id, type: 'statusUpdate', status: statusUpdate });
+      sendAdminAction({ id, type: 'statusUpdate', status: statusUpdate, elapsedTime: Math.floor((Date.now() - (newStartTime || updated.startTime)) / 1000)
+      });
     } catch (error) {
       console.error('Failed to update match status:', error);
     }
+    setGamePhase(nextPhase);
   };
 
   // helper functions to fix snake case
@@ -352,7 +349,9 @@ const MatchPage = () => {
             bench={bench}
             setBench={setBench}
             playerMap={playerMap}
-            setMatchData={setMatchData}/>
+            setMatchData={setMatchData}
+            homeTeamId={matchData.team._id}
+            homeTeamName={matchData.team.name}/>
           </Paper>
         </Grid>
       </Grid>

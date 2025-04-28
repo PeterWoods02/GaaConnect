@@ -11,21 +11,22 @@ import { checkRole } from '../../middleware/checkRole.js';
 const router = express.Router();
 
 // Get all matches
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
-      const { role, team } = req.user;
-
-    let query = {};
-
-    if (role !== 'admin') {
-      if (!team || team.length === 0) {
-        return res.status(403).json({ message: 'You are not assigned to a team.' });
+      let query = {};
+      if (req.user) {
+        const { role, team } = req.user;
+  
+        if (role !== 'admin') {
+          if (!team || team.length === 0) {
+            return res.status(403).json({ message: 'You are not assigned to a team.' });
+          }
+  
+          const teamIds = Array.isArray(team) ? team : [team];
+          query = { team: { $in: teamIds } };
+        }
       }
-
-      const teamIds = Array.isArray(team) ? team : [team];
-      query = { team: { $in: teamIds } };
-    }
-        const matches = await Match.find()
+      const matches = await Match.find(query)
             .populate('statistics')  
             .populate('team')      
             .populate('events')   
@@ -41,7 +42,10 @@ router.get('/', authenticateToken, async (req, res) => {
 // GET match by ID
 router.get("/:id", async (req, res) => {
     try {
-      const match = await Match.findById(req.params.id);
+      const match = await Match.findById(req.params.id)
+      .populate('team')
+      .populate('events');
+
       if (!match) return res.status(404).json({ message: "Match not found" });
   
       res.json(match);

@@ -49,10 +49,14 @@ io.on('connection', (socket) => {
   });
   
   // Listen for admin actions (like goal, card, substitution)
-  socket.on('admin-action', (actionData) => {
+  socket.on('adminAction', (actionData) => {
     console.log('Admin action received:', actionData);
     // Emit the action to all connected clients
-    io.emit('match-update', actionData);
+    if (actionData.id) {
+      io.to(actionData.id).emit('matchUpdate', actionData);
+    } else {
+      console.log('Action missing matchId');
+    }
   });
 
 

@@ -26,6 +26,25 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
     }
   }, [matchData]);
 
+  useEffect(() => {
+    if (gamePhase !== 1 && gamePhase !== 3) return;
+    if (!matchData?.startTime) return;
+  
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - matchData.startTime) / 1000);
+  
+      sendAdminAction({
+        id: matchId,
+        type: 'timerUpdate',
+        elapsedTime: elapsed
+      });
+    }, 1000);
+  
+    return () => clearInterval(interval);
+  }, [gamePhase, matchData?.startTime, matchId]);
+  
+  
+
   const initialisePlayers = async (data) => {
     const positionPlayerIds = Object.values(data.teamPositions || {}).filter(Boolean);
     const benchPlayerIds = data.bench || [];
@@ -55,15 +74,35 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
   
   // Handle the game phase buttons
   const handleGamePhaseClick = () => {
+    let newStatus = 'upcoming';
     switch (gamePhase) {
-      case 0: onPhaseChange(1); break;
-      case 1: onPhaseChange(2); break; 
-      case 2: onPhaseChange(3); break; 
-      case 3: onPhaseChange(4); break; 
-      default: break;
+      case 0:
+        onPhaseChange(1);
+        newStatus = 'live';
+        break;
+      case 1: 
+        onPhaseChange(2);
+        newStatus = 'halfTime';
+        break;
+      case 2: 
+        onPhaseChange(3);
+        newStatus = 'live';
+        break;
+      case 3: 
+        onPhaseChange(4);
+        newStatus = 'fullTime';
+        break;
+      default:
+        break;
     }
+    sendAdminAction({
+      id: matchId,
+      type: 'statusUpdate',
+      status: newStatus,
+      elapsedTime: matchData?.startTime ? Math.floor((Date.now() - matchData.startTime) / 1000) : 0
+    });
+    
   };
-
   const getGamePhaseButtonText = () => {
     switch (gamePhase) {
       case 0: return 'Start First Half';
