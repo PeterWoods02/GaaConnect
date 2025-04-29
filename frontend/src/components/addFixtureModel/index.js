@@ -4,7 +4,7 @@ import { getTeams } from "../../api/teamsApi.js";
 import { useNavigate } from "react-router-dom";
 import { Snackbar, Alert } from "@mui/material";
 
-const FullscreenForm = () => {
+const FullscreenForm = ({ onFixtureAdded, token }) => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [matchTitle, setMatchTitle] = useState("");
@@ -17,6 +17,7 @@ const FullscreenForm = () => {
   const [loading, setLoading] = useState(false); 
   const [error, setError] = useState(""); 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
   // Fetch the teams when the component mounts
   useEffect(() => {
@@ -31,6 +32,18 @@ const FullscreenForm = () => {
 
     fetchTeams();
   }, []);
+
+  // decode token to determine role
+  useEffect(() => {
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setUserRole(decoded.role);
+      } catch (err) {
+        console.error("Failed to decode token", err);
+      }
+    }
+  }, [token]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,9 +84,9 @@ const FullscreenForm = () => {
       setSnackbarOpen(true);
 
       
-      setTimeout(() => {
-        navigate("/calendar");
-      }, 1500);
+      if (onFixtureAdded) {
+        onFixtureAdded();
+      }
     } catch (error) {
       console.error("Error creating match:", error);
       setError("Failed to create match. Please try again.");
@@ -85,12 +98,14 @@ const FullscreenForm = () => {
   return (
     <div>
       {/* Button to Open Popup */}
+      {['admin', 'coach', 'manager'].includes(userRole) && (
       <button
         onClick={() => setIsOpen(true)}
         className="bg-blue-600 text-white px-4 py-2 rounded"
       >
         + Add Fixture
       </button>
+    )}
 
       {/* Fullscreen Overlay (Only visible when isOpen is true) */}
       {isOpen && (

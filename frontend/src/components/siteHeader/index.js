@@ -8,7 +8,9 @@ import { useAuth } from '../../context/authContext';
 
 const SiteHeader = () => {
   const [showSettings, setShowSettings] = useState(false);
+  const [showPlayersDropdown, setShowPlayersDropdown] = useState(false);
   const [showTeamsDropdown, setShowTeamsDropdown] = useState(false);
+  const [showFixturesDropdown, setShowFixturesDropdown] = useState(false);
   const navigate = useNavigate();
 
   const { user, logout, isAuthenticated } = useAuth();
@@ -28,20 +30,24 @@ const SiteHeader = () => {
       <h1 className="logo">GAA Connect</h1>
       
       <nav className="nav-links">
-        <Link to="/" className="nav-link">Home</Link>
+      {isAuthenticated && <Link to="/" className="nav-link">Home</Link>}
 
         {/* Players Dropdown */}
-        {(user?.role === 'admin' || user?.role === 'coach' || user?.role === 'manager') && (
+        {(user?.role === 'admin' || user?.role === 'coach' || user?.role === 'manager' || user?.role === 'player') && (
           <div 
             className="players-dropdown"
-            onMouseEnter={() => setShowTeamsDropdown(true)}
-            onMouseLeave={() => setShowTeamsDropdown(false)}
+            onMouseEnter={() => setShowPlayersDropdown(true)}
+            onMouseLeave={() => setShowPlayersDropdown(false)}
           >
             <span className="nav-link">Players</span>
-            {showTeamsDropdown && (
+            {showPlayersDropdown && (
               <div className="dropdown-menu">
-                <Link to="/addPlayer">Add Player</Link>
-                <Link to="/searchPlayers" >Search Player</Link>
+                {(user?.role === 'admin' || user?.role === 'coach' || user?.role === 'manager') && (
+                  <>
+                    <Link to="/addPlayer">Add Player</Link>
+                    <Link to="/searchPlayers">Search Player</Link>
+                  </>
+                )}
                 <Link to="/playerStats">Player Stats</Link>
                 {user?.role === 'admin' && <Link to="/inviteManager">Invite Manager</Link>}
               </div>
@@ -71,14 +77,16 @@ const SiteHeader = () => {
         {isAuthenticated && (
           <div 
             className="teams-dropdown"
-            onMouseEnter={() => setShowTeamsDropdown(true)}
-            onMouseLeave={() => setShowTeamsDropdown(false)}
+            onMouseEnter={() => setShowFixturesDropdown(true)}
+            onMouseLeave={() => setShowFixturesDropdown(false)}
           >
             <span className="nav-link">Fixtures</span>
-            {showTeamsDropdown && (
+            {showFixturesDropdown && (
               <div className="dropdown-menu">
                 <Link to="/calendar">Calendar</Link>
-                <Link to="/addFixture">Add Fixture</Link>
+                {(user?.role === 'admin' || user?.role === 'coach' || user?.role === 'manager') && (
+                  <Link to="/addFixture">Add Fixture</Link>
+                )}
                 <Link to="/fanScorePage">Fan</Link>
               </div>
             )}

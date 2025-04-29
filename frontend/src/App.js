@@ -38,20 +38,20 @@ const App = () => {
           <ToastContainer position="top-right" autoClose={4000} hideProgressBar />
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<Home />} />
-            <Route path="/calendar" element={<Calendar />} />
-            <Route path="/fanPage/match/:matchId" element={<FanPage />} />
-            <Route path="/fanScorePage" element={<FanScorePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/playerStats" element={<PlayerStats />} />
-            <Route path="/match/team/:id" element={<DisplayTeam />} />
             <Route path="/managerSignup" element={<ManagerSignupPage />} />
             <Route path="/contactAdmin" element={<ContactAdmin />} />
 
 
             {/* Protected Routes */}
+            <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+            <Route path="/fanPage/match/:matchId" element={<ProtectedRoute><FanPage /></ProtectedRoute>} />
+            <Route path="/fanScorePage" element={<ProtectedRoute><FanScorePage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/playerStats" element={<ProtectedRoute><PlayerStats /></ProtectedRoute>} />
+            <Route path="/match/team/:id" element={<ProtectedRoute><DisplayTeam /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/addTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><AddTeam /></ProtectedRoute>} />
             <Route path="/addPlayer" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><AddPlayer /></ProtectedRoute>} />
             <Route path="/createTeam/:matchId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><CreateTeam /></ProtectedRoute>} />
