@@ -36,6 +36,11 @@ const statisticsSchema = new mongoose.Schema({
     required: true,
     default: 0,
   },
+  team: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Team',
+      required: false,
+    },
 });
 
 export default mongoose.model('Statistics', statisticsSchema);

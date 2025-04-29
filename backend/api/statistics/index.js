@@ -9,28 +9,32 @@ const router = express.Router();
 router.get('/', authenticateToken, checkRole('admin', 'coach', 'manager', 'player'), async (req, res) => {
     try {
         let statistics;
-    
-        if (req.user.role === 'admin') {
-          // Admin sees all stats
+        const teamId = req.query.teamId;
+      
+        if (teamId) {
+          // If frontend sends ?teamId=... → filter by that team
+          statistics = await Statistics.find({ team: teamId }).populate('player');
+        } else if (req.user.role === 'admin') {
+          // Admins see all stats
           statistics = await Statistics.find().populate('player');
         } else {
-          // All other roles use preloaded teams from JWT
+          // Other users see only their own teams
           const teamIds = req.user.team;
-    
+      
           if (!teamIds || teamIds.length === 0) {
             return res.status(403).json({ message: 'You are not assigned to any team yet.' });
           }
-        
+      
           statistics = await Statistics.find({ team: { $in: teamIds } }).populate('player');
         }
-    
+      
         res.status(200).json(statistics);
       } catch (error) {
         console.error('Error fetching statistics:', error);
         res.status(500).json({ message: 'Server error' });
       }
     });
-
+    
 // Get a specific statistics document by ID (self or admin/coach)
 router.get('/:id', authenticateToken, checkRole('admin', 'coach', 'manager', 'player'), async (req, res) => {
     const { id } = req.params;

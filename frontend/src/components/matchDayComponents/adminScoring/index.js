@@ -8,6 +8,9 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import { getTeamForMatch, logEvent, getMatchById, updateTeamPositionsLive } from '../../../api/matchApi';
 import { getUserById } from '../../../api/usersApi';
 import { sendAdminAction } from '../../../services/socketClient';
+import { Box } from '@mui/material';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTime, onPhaseChange, positions, setPositions, bench, setBench, token }) => {
   const [openPlayerSelect, setOpenPlayerSelect] = useState(false);
@@ -124,7 +127,15 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
 
   const handleEvent = (eventType, teamType) => {
     if (gamePhase !== 1 && gamePhase !== 3) {
-      alert('Match not in progress!');
+      toast.error('Match not in progress!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       return;
     }
 
@@ -308,18 +319,18 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
         </Grid>
       </Grid>
 
-      <Dialog open={openPlayerSelect} onClose={handleCancelPlayerSelection}>
+      <Dialog open={openPlayerSelect} onClose={handleCancelPlayerSelection} fullWidth maxWidth="sm">
         <DialogTitle>Select Player</DialogTitle>
         <DialogContent>
           {loadingPlayers ? (
             <CircularProgress />
           ) : selectedEvent === 'substitution' ? (
             <>
+            <Box mb={2}>
               <Typography>Select Player Coming Off (on pitch):</Typography>
-            
               <Select
                 fullWidth
-                value={selectedPlayerOffPosition}
+                value={selectedPlayerOffPosition || ''}
                 onChange={(e) => setSelectedPlayerOffPosition(e.target.value)}
               >
                 {Object.entries(positions).map(([position, playerId]) => (
@@ -330,10 +341,13 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
                   )
                 ))}
               </Select>
-              <Typography sx={{ mt: 2 }}>Select Player Coming On (from bench):</Typography>
+            </Box>
+
+            <Box mb={2}>
+              <Typography>Select Player Coming On (from bench):</Typography>
               <Select
                 fullWidth
-                value={selectedPlayerOnId}
+                value={selectedPlayerOnId || ''}
                 onChange={(e) => setSelectedPlayerOnId(e.target.value)}
               >
                 {bench.map(player => (
@@ -342,11 +356,12 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
                   </MenuItem>
                 ))}
               </Select>
-            </>
+            </Box>
+          </>
           ) : (
             <Select
               fullWidth
-              value={selectedPlayerId}
+              value={selectedPlayerId || ''}
               onChange={(e) => setSelectedPlayerId(e.target.value)}
             >
               {players.map(player => (

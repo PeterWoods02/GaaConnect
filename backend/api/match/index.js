@@ -435,6 +435,7 @@ router.post('/:id/event', authenticateToken, checkRole('manager', 'coach', 'admi
             if (!playerStats) {
                 playerStats = new Statistics({
                     player: playerId,
+                    team: match.team,
                     goals: 0,
                     points: 0,
                     minutes_played: 0,

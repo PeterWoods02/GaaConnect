@@ -28,6 +28,25 @@ const handleError = (action, error, response = null) => {
     }
   };
 
+  export const getStatisticsByTeamId = async (teamId, token) => {
+    try {
+      const response = await fetch(`${BASE_URL}?teamId=${teamId}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+      });
+      if (!response.ok) {
+        const errorRes = await response.json();
+        handleError('fetching statistics by Team ID', new Error(errorRes.message || 'Failed to fetch statistics'), response);
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      handleError('fetching statistics by Team ID', error);
+    }
+  };
+
   export const getStatisticsById = async (id, token) => {
     try {
       const response = await fetch(`${BASE_URL}/${id}`, {

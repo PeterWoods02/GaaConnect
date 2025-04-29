@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TableSortLabel, Typography } from "@mui/material";
-import { getAllStatistics } from "../api/statsApi";
+import { Button, Table, TableBody, TableCell, TableContainer,
+   TableHead, TableRow, Paper, TableSortLabel, Typography,
+   Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import { getAllStatistics, getStatisticsByTeamId } from "../api/statsApi";
+import { getTeams } from "../api/teamsApi"; 
 import { useNavigate } from "react-router-dom";
 
 const PlayersStatsPage = () => {
@@ -8,21 +11,40 @@ const PlayersStatsPage = () => {
   const [sortBy, setSortBy] = useState("total_score");
   const [sortOrder, setSortOrder] = useState("desc");
   const [error, setError] = useState(null);
+  const [selectedTeamId, setSelectedTeamId] = useState('');
+  const [teams, setTeams] = useState([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchTeamsList = async () => {
+      try {
+        const data = await getTeams();
+        setTeams(data);
+      } catch (error) {
+        console.error('Error fetching teams:', error);
+      }
+    };
+
+    fetchTeamsList();
+  }, []);
 
   useEffect(() => {
     const fetchStatistics = async () => {
       const token = localStorage.getItem("token");
+      if (!token || !selectedTeamId) return;
+  
       try {
-        const stats = await getAllStatistics(token);
+        const stats = await getStatisticsByTeamId(selectedTeamId, token); // ✅ use correct API
         setStatistics(stats);
+        setError(null);
       } catch (error) {
         console.error("Error fetching statistics:", error);
         setError(error.message);
       }
     };
+  
     fetchStatistics();
-  }, []);
+  }, [selectedTeamId]);
 
   const handleSort = (column) => {
     const isAsc = sortBy === column && sortOrder === "asc";
@@ -44,59 +66,73 @@ const PlayersStatsPage = () => {
 
   return (
     <TableContainer component={Paper} sx={{ mt: 3, p: 2 }}>
-    <Typography variant="h6" textAlign="center" gutterBottom>
-      Player Statistics
-    </Typography>
-  
-    {error ? (
-    <Typography align="center" color="error" sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      {error}
-      {error === "You are not assigned to any team yet." && (
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/contact-admin")}>
-          Contact Admin
-        </Button>
-      )}
-  </Typography>
-    ) : statistics.length === 0 ? (
-      <Typography align="center" sx={{ py: 5 }}>
-        No statistics available for your team.
+      <Typography variant="h6" textAlign="center" gutterBottom>
+        Player Statistics
       </Typography>
-    ) : (
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell><strong>Name</strong></TableCell>
-            {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards", "total_score"].map((col) => (
-              <TableCell key={col} align="right">
-                <TableSortLabel
-                  active={sortBy === col}
-                  direction={sortBy === col ? sortOrder : "asc"}
-                  onClick={() => handleSort(col)}
-                >
-                  {col === "total_score" ? "TOTAL SCORE" : col.replace(/([A-Z])/g, " $1").toUpperCase()}
-                </TableSortLabel>
-              </TableCell>
-            ))}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sortedStats.map((stat) => (
-            <TableRow key={stat._id}>
-              <TableCell>{stat.player?.name || "Unknown Player"}</TableCell>
-              {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards"].map((col) => (
+
+      <FormControl fullWidth sx={{ mb: 3 }}>
+        <InputLabel>Select Team</InputLabel>
+        <Select
+          value={selectedTeamId}
+          label="Select Team"
+          onChange={(e) => setSelectedTeamId(e.target.value)}
+        >
+          {teams.map((team) => (
+            <MenuItem key={team._id} value={team._id}>
+              {team.name} ({team.age_group})
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      {error ? (
+        <Typography align="center" color="error" sx={{ py: 5, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {error}
+          {error === "You are not assigned to any team yet." && (
+            <Button variant="outlined" sx={{ mt: 2 }} onClick={() => navigate("/contact-admin")}>
+              Contact Admin
+            </Button>
+          )}
+        </Typography>
+      ) : statistics.length === 0 ? (
+        <Typography align="center" sx={{ py: 5 }}>
+          {selectedTeamId ? "No statistics available for this team." : "Please select a team to view statistics."}
+        </Typography>
+      ) : (
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell><strong>Name</strong></TableCell>
+              {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards", "total_score"].map((col) => (
                 <TableCell key={col} align="right">
-                  {stat[col] || 0}
+                  <TableSortLabel
+                    active={sortBy === col}
+                    direction={sortBy === col ? sortOrder : "asc"}
+                    onClick={() => handleSort(col)}
+                  >
+                    {col === "total_score" ? "TOTAL SCORE" : col.replace(/([A-Z])/g, " $1").toUpperCase()}
+                  </TableSortLabel>
                 </TableCell>
               ))}
-              <TableCell align="right"><strong>{getTotalScore(stat)}</strong></TableCell>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    )}
-  </TableContainer>
+          </TableHead>
+          <TableBody>
+            {sortedStats.map((stat) => (
+              <TableRow key={stat._id}>
+                <TableCell>{stat.player?.name || "Unknown Player"}</TableCell>
+                {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards"].map((col) => (
+                  <TableCell key={col} align="right">
+                    {stat[col] || 0}
+                  </TableCell>
+                ))}
+                <TableCell align="right"><strong>{getTotalScore(stat)}</strong></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </TableContainer>
   );
 };
-
 
 export default PlayersStatsPage;
