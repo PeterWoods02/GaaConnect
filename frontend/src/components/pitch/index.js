@@ -6,7 +6,7 @@ import { updateDefaultLineup } from '../../api/teamsApi.js';
 import { useParams, useLocation, useNavigate  } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers, teamId }) => {
+const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers, teamId, readOnly }) => {
   const navigate = useNavigate();
   const { matchId } = useParams();
   const location = useLocation();
@@ -50,6 +50,8 @@ const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers,
   };
 
   const handleDrop = (position, player) => {
+    if (readOnly) return;
+
     setPositions(prevPositions => {
       const updatedPositions = { ...prevPositions };
       let previousPosition = null;
@@ -144,6 +146,7 @@ const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers,
       ))}
 
       
+    {!readOnly && (
       <button
         onClick={handleSaveTeam}
         style={{
@@ -161,6 +164,7 @@ const Pitch = ({ positions, setPositions, availablePlayers, setAvailablePlayers,
       >
         Save Team
       </button>
+    )}
     </div>
   );
 };

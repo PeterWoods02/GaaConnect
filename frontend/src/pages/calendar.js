@@ -41,10 +41,17 @@ const MyCalendar = () => {
 
       // filter matches where user is involved 
       let filteredMatches = data;
-      if (decoded.role !== 'admin') {
-        // Manager only show matches their team is involved
+      if (decoded.role === 'admin') {
+        // Admin sees everything
+        filteredMatches = data;
+      } else if (decoded.role === 'coach' || decoded.role === 'manager' || decoded.role === 'player') {
         const managerTeamIds = Array.isArray(decoded.team) ? decoded.team : [decoded.team];
-        filteredMatches = data.filter(match => match.team && managerTeamIds.includes(match.team._id || match.team));
+        filteredMatches = data.filter(match =>
+          match.team && managerTeamIds.includes(match.team._id || match.team)
+        );
+      } else {
+        // Fan or no team role — show all matches too
+        filteredMatches = data;
       }
 
       const events = filteredMatches.map((match) => ({

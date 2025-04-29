@@ -1,22 +1,26 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { Card, CardContent, Typography, Grid, CircularProgress, Box } from '@mui/material';
+import { Card, CardContent, Typography, Grid, CircularProgress, Box, Alert } from '@mui/material';
 import { getTeamById } from '../../api/teamsApi';
 import { getAllStatistics } from '../../api/statsApi';
 
 const SquadOverview = () => {
   const [teamStats, setTeamStats] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const token = localStorage.getItem('token');
   const user = token ? JSON.parse(atob(token.split('.')[1])) : null;
 
-  //Added useMemo to prevent recreating of array
   const userTeams = useMemo(() => user?.team || [], [token]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
+        if (!userTeams.length) {
+          setError('You are not assigned to any teams.');
+          setLoading(false);
+          return;
+        }
         const stats = await getAllStatistics(token);
-
         const teamDetails = await Promise.all(userTeams.map((teamId) => getTeamById(teamId, token)));
 
         const results = teamDetails.map((team) => {
@@ -34,7 +38,7 @@ const SquadOverview = () => {
 
           return {
             teamName: team.name,
-            players: team.players.length,
+            players: team.players?.length || 0,
             topScorer: topScorerObj
               ? `${topScorerObj.playerName} (${topScorerObj.formatted})`
               : 'N/A',
@@ -44,13 +48,17 @@ const SquadOverview = () => {
         setTeamStats(results);
       } catch (err) {
         console.error('Error loading squad overview:', err);
+        setError('Something went wrong loading squad data.');
       } finally {
         setLoading(false);
       }
     };
 
-    if (userTeams.length && token) {
+    if (token) {
       fetchData();
+    } else {
+      setError('Not authenticated.');
+      setLoading(false);
     }
   }, [userTeams, token]);
 
@@ -59,6 +67,22 @@ const SquadOverview = () => {
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
         <CircularProgress />
       </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert severity="info" sx={{ mt: 2 }}>
+        {error}
+      </Alert>
+    );
+  }
+
+  if (teamStats.length === 0) {
+    return (
+      <Alert severity="info" sx={{ mt: 2 }}>
+        No teams or statistics available to display.
+      </Alert>
     );
   }
 

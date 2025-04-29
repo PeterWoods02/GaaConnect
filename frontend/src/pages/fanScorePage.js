@@ -75,14 +75,24 @@ const FanHomePage = () => {
 
               <Box textAlign="right">
                 <Typography variant="h6">{formatScore(match)}</Typography>
+                <Box display="flex" gap={1} justifyContent="flex-end" flexWrap="wrap">
                 <Button
                   variant="outlined"
                   size="small"
                   onClick={() => navigate(`/fanPage/match/${match._id}`)}
-                  disabled={match.status === 'fullTime'}
                 >
                   {match.status === 'fullTime' ? 'Match Ended' : 'View Match'}
                 </Button>
+
+                <Button
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  onClick={() => navigate(`/match/team/${match._id}`)}
+                >
+                  View Squad
+                </Button>
+              </Box>
               </Box>
             </Paper>
           </Grid>

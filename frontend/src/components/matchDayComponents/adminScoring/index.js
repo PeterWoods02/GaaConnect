@@ -36,6 +36,7 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - matchData.startTime) / 1000);
   
+      if (elapsed > 5400) elapsed = 5400;
       sendAdminAction({
         id: matchId,
         type: 'timerUpdate',

@@ -10,11 +10,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
-
-    if (storedToken) {
+    const storedUser = localStorage.getItem('user');
+  
+    if (storedToken && storedUser) {
       try {
-        const decoded = jwtDecode(storedToken);
-        setUser(decoded);
+        setUser(JSON.parse(storedUser));
         setToken(storedToken);
       } catch (err) {
         console.error('Invalid token');
@@ -29,9 +29,11 @@ export const AuthProvider = ({ children }) => {
       setUser(decoded);
       setToken(token);
       localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(userData));
 
       connectSocket();
       joinUserRoom(decoded.id);
+      joinUserRoom(userData._id || userData.id);
     } catch (err) {
       console.error('Invalid login token');
     }
@@ -41,6 +43,7 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const isAuthenticated = !!token;

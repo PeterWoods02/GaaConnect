@@ -182,7 +182,11 @@ router.get("/:id/squad", async (req, res) => {
         if (!match.teamPositions || Object.keys(match.teamPositions).length === 0) {
             return res.status(404).json({ message: "No team positions found for this match" });
         }
-        res.status(200).json(match.teamPositions);
+        res.status(200).json({
+          team: match.team,
+          positions: Object.fromEntries(match.teamPositions),
+          bench: match.bench || []
+        });
     } catch (error) {
         console.error("Error fetching team positions:", error);
         res.status(500).json({ message: "Server error" });

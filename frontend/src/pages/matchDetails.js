@@ -9,6 +9,7 @@ const MatchDetails = () => {
   const [match, setMatch] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [userRole, setUserRole] = useState(null);
   // Fetch match details from backend
   useEffect(() => {
     const fetchMatchDetails = async () => {
@@ -16,6 +17,16 @@ const MatchDetails = () => {
         console.error("Match ID is missing!");
         setLoading(false);
         return;
+      }
+
+            const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded = JSON.parse(atob(token.split('.')[1]));
+          setUserRole(decoded.role);
+        } catch (err) {
+          console.error("Error decoding token", err);
+        }
       }
       
       try {
@@ -84,6 +95,8 @@ const MatchDetails = () => {
           View Match Day Squad
         </button>
 
+      {['admin', 'coach', 'manager'].includes(userRole) && (
+      <>
         <button 
           onClick={navigateToMatchDay} 
           className="px-6 py-3 bg-blue-600 text-white rounded-lg text-xl hover:bg-blue-700 transition duration-300"
@@ -97,6 +110,8 @@ const MatchDetails = () => {
         >
           Delete Match
         </button>
+      </>
+    )}
       </div>
 
       {showModal && (

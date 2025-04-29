@@ -58,7 +58,7 @@ const App = () => {
             <Route path="/createTeam/default/:teamId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><CreateTeam /></ProtectedRoute>} />
             <Route path="/manageTeams/:teamId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><ManageTeams /></ProtectedRoute>} />
             <Route path="/playerManagement/:teamId" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><PlayerManagement /></ProtectedRoute>} />
-            <Route path="/match/:id" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><MatchDetails /></ProtectedRoute>} />
+            <Route path="/match/:id" element={<ProtectedRoute><MatchDetails /></ProtectedRoute>} />
             <Route path="/match/live/:id" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><MatchDay /></ProtectedRoute>} />
             <Route path="/selectMatch" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectMatch /></ProtectedRoute>} />
             <Route path="/selectTeam" element={<ProtectedRoute roles={['admin', 'coach', 'manager']}><SelectTeam /></ProtectedRoute>} />
