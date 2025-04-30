@@ -55,13 +55,14 @@ Basic backend testing using **Jest** and **Supertest**. Covers:
 
 ## 📸 Screenshots
 
-| Feature                | Screenshot Path              |
-|------------------------|------------------------------|
-| Home Page              | `./screenshots/home.png`     |
-| Match Day Scoring      | `./screenshots/scoring.png`  |
-| Player Management      | `./screenshots/players.png`  |
-| Final ER Diagram       | `./screenshots/finalEr.png`  |
-| Poster                 | `./screenshots/poster.png`   |
+| Feature                | Screenshot                  |
+|------------------------|-----------------------------|
+| Home Page              | ![Home Page](./screenshots/home.png)  |
+| Match Day Scoring      | ![Match Day Scoring](./screenshots/scoring.png) |
+| Player Management      | ![Player Management](./screenshots/players.png) |
+| Final ER Diagram       | ![Final ER Diagram](./screenshots/finalEr.png) |
+| Poster                 | ![Poster](./screenshots/poster.png) |
+
 
 ## 🛠️ Installation
 
