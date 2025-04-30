@@ -9,7 +9,7 @@ const RegisterPage = () => {
     name: '',
     email: '',
     password: '',
-    role: 'player',
+    role: 'fan',
   });
   const [error, setError] = useState('');
 
@@ -35,19 +35,6 @@ const RegisterPage = () => {
         <TextField fullWidth margin="normal" name="name" label="Name" value={formData.name} onChange={handleChange} />
         <TextField fullWidth margin="normal" name="email" label="Email" value={formData.email} onChange={handleChange} />
         <TextField fullWidth margin="normal" name="password" label="Password" type="password" value={formData.password} onChange={handleChange} />
-        <TextField
-          select
-          fullWidth
-          margin="normal"
-          name="role"
-          label="Role"
-          value={formData.role}
-          onChange={handleChange}
-        >
-          {['player', 'manager', 'coach', 'physio', 'fan'].map(role => (
-            <MenuItem key={role} value={role}>{role}</MenuItem>
-          ))}
-        </TextField>
         <Box mt={2}>
           <Button type="submit" variant="contained" fullWidth>Register</Button>
         </Box>

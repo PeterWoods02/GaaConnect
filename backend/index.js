@@ -50,7 +50,6 @@ io.on('connection', (socket) => {
   
   // Listen for admin actions (like goal, card, substitution)
   socket.on('adminAction', (actionData) => {
-    console.log('Admin action received:', actionData);
     // Emit the action to all connected clients
     if (actionData.id) {
       io.to(actionData.id).emit('matchUpdate', actionData);

@@ -45,8 +45,14 @@ const PlayerManagementPage = () => {
     try {
       const token = localStorage.getItem("token");
       await addPlayerToTeam(teamId, player._id, token);
-      setTeamPlayers([...teamPlayers, player]);
-      setAvailablePlayers(availablePlayers.filter((p) => p._id !== player._id));
+  
+      // Re-fetch updated data
+      const allPlayers = await getPlayers(token);
+      const teamData = await getTeamById(teamId);
+      const teamPlayerIds = teamData.players.map((p) => p._id);
+  
+      setAvailablePlayers(allPlayers.filter((p) => !teamPlayerIds.includes(p._id)));
+      setTeamPlayers(teamData.players);
     } catch (error) {
       console.error("Error adding player:", error);
     }
@@ -57,8 +63,14 @@ const PlayerManagementPage = () => {
     try {
       const token = localStorage.getItem("token");
       await removePlayerFromTeam(teamId, player._id, token);
-      setAvailablePlayers([...availablePlayers, player]);
-      setTeamPlayers(teamPlayers.filter((p) => p._id !== player._id));
+  
+      // Re-fetch updated data
+      const allPlayers = await getPlayers(token);
+      const teamData = await getTeamById(teamId);
+      const teamPlayerIds = teamData.players.map((p) => p._id);
+  
+      setAvailablePlayers(allPlayers.filter((p) => !teamPlayerIds.includes(p._id)));
+      setTeamPlayers(teamData.players);
     } catch (error) {
       console.error("Error removing player:", error);
     }

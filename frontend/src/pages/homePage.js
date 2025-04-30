@@ -95,7 +95,6 @@ const Home = () => {
             {user?.role !== 'fan' && (
               <>
                 <SquadOverview />
-                <NotificationsPanel sx={{ mt: 4 }} />
               </>
             )}
           </Grid>

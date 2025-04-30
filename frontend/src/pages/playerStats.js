@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button, Table, TableBody, TableCell, TableContainer,
-   TableHead, TableRow, Paper, TableSortLabel, Typography,
-   Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { getAllStatistics, getStatisticsByTeamId } from "../api/statsApi";
+  TableHead, TableRow, Paper, TableSortLabel, Typography,
+  Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+  import { getAllStatistics, getStatisticsByTeamId } from "../api/statsApi";
 import { getTeams } from "../api/teamsApi"; 
 import { useNavigate } from "react-router-dom";
 
@@ -32,9 +32,9 @@ const PlayersStatsPage = () => {
     const fetchStatistics = async () => {
       const token = localStorage.getItem("token");
       if (!token || !selectedTeamId) return;
-  
+
       try {
-        const stats = await getStatisticsByTeamId(selectedTeamId, token); // ✅ use correct API
+        const stats = await getStatisticsByTeamId(selectedTeamId, token);
         setStatistics(stats);
         setError(null);
       } catch (error) {
@@ -42,7 +42,7 @@ const PlayersStatsPage = () => {
         setError(error.message);
       }
     };
-  
+
     fetchStatistics();
   }, [selectedTeamId]);
 
@@ -103,7 +103,7 @@ const PlayersStatsPage = () => {
           <TableHead>
             <TableRow>
               <TableCell><strong>Name</strong></TableCell>
-              {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards", "total_score"].map((col) => (
+              {["goals", "points", "yellowCards", "redCards", "total_score"].map((col) => (
                 <TableCell key={col} align="right">
                   <TableSortLabel
                     active={sortBy === col}
@@ -120,7 +120,7 @@ const PlayersStatsPage = () => {
             {sortedStats.map((stat) => (
               <TableRow key={stat._id}>
                 <TableCell>{stat.player?.name || "Unknown Player"}</TableCell>
-                {["goals", "points", "minutes_played", "ratings", "yellowCards", "redCards"].map((col) => (
+                {["goals", "points", "yellowCards", "redCards"].map((col) => (
                   <TableCell key={col} align="right">
                     {stat[col] || 0}
                   </TableCell>

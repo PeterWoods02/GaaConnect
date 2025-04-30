@@ -36,18 +36,18 @@ const MatchPage = () => {
     const fetchMatchDetails = async () => {
       try {
         const match = await getMatchById(id);
+        const seconds = match.startTime
+          ? Math.floor((Date.now() - match.startTime) / 1000)
+          : 0;
         setMatchData(match);
-  
-        if (match.startTime) {
-          const now = Date.now();
-          const seconds = Math.floor((now - match.startTime) / 1000);
-          setElapsedTime(seconds);
-          setGamePhase(statusToPhase(match.status, seconds));
-          if (match.status !== 'fullTime') {
-            startTimer();  
-          }
-        } else {
-          setGamePhase(statusToPhase(match.status, 0));
+        setElapsedTime(seconds);
+        setGamePhase(statusToPhase(match.status, seconds));
+        if (match.status === 'live' && seconds < MAX_GAME_TIME) {
+          startTimer();
+        }
+        if (match.status === 'live' && seconds >= MAX_GAME_TIME) {
+          setMatchData(prev => ({ ...prev, status: 'fullTime' }));
+          setGamePhase(4);
         }
   
         const teamPositionIds = Object.values(match.teamPositions || {}).filter(Boolean);
@@ -99,7 +99,11 @@ const MatchPage = () => {
       }
     });
   
-    return () => unsubscribe();
+    return () => {unsubscribe();
+    if (timerRef.current) {
+         clearInterval(timerRef.current);
+         timerRef.current = null;
+      }};
   }, [id]);
   
   
@@ -119,6 +123,10 @@ const MatchPage = () => {
 
   const startTimer = () => {
     if (timerRef.current) return;
+    if (matchData?.status === 'fullTime') {
+      console.log('Match is already full time. Timer will not start.');
+      return;
+    }
     timerRef.current = setInterval(() => {
       setElapsedTime((prev) => {
         if (prev >= MAX_GAME_TIME) {

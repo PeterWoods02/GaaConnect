@@ -41,11 +41,10 @@ const UserSchema = new mongoose.Schema({
   previous_teams: [String],               // Coach
   speciality: { type: String },           // Physio
 
-  statistics: {
+  statistics: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Statistics',
-    required: false,
-  },
+  }],
 
   profilePicture: {
     type: String, 

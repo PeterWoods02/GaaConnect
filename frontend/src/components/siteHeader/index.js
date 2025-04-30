@@ -49,8 +49,7 @@ const SiteHeader = () => {
                   </>
                 )}
                 <Link to="/playerStats">Player Stats</Link>
-                {user?.role === 'admin' && <Link to="/inviteManager">Invite Manager</Link>}
-              </div>
+               </div>
             )}
           </div>
         )}
@@ -66,8 +65,9 @@ const SiteHeader = () => {
             {showTeamsDropdown && (
               <div className="dropdown-menu">
                 <Link to="/addTeam">Add Team</Link>
-                <Link to="/selectMatch" >Create Team</Link>
+                <Link to="/selectMatch">Create Team</Link>
                 <Link to="/selectTeam">Manage Teams</Link>
+                {user?.role === 'admin' && <Link to="/inviteManager">Invite Manager</Link>}
               </div>
             )}
           </div>

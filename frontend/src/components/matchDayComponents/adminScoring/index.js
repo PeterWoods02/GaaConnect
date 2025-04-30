@@ -36,6 +36,10 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - matchData.startTime) / 1000);
   
+      if (matchData.status === 'fullTime') {
+        clearInterval(interval);
+        return;
+      }
       if (elapsed > 5400) elapsed = 5400;
       sendAdminAction({
         id: matchId,
@@ -45,7 +49,7 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
     }, 1000);
   
     return () => clearInterval(interval);
-  }, [gamePhase, matchData?.startTime, matchId]);
+  }, [gamePhase, matchData?.startTime, matchId, matchData?.status]);
   
   
 
@@ -121,8 +125,12 @@ const AdminControls = ({ matchId, matchData, setMatchData, gamePhase, elapsedTim
   const isButtonDisabled = () => gamePhase === 4;
 
   const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    // clamp at full time (90 minutes)
+    const clamp = gamePhase === 4
+      ? Math.min(seconds, 90 * 60)
+      : seconds;
+    const mins = Math.floor(clamp / 60);
+    const secs = clamp % 60;
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 

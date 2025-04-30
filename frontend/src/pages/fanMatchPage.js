@@ -40,8 +40,8 @@ const FanMatchPage = () => {
     fetchInitialData();
 
     const unsubscribe = listenToMatchUpdates(matchId, (action) => {
-      console.log('Received socket action:', action); // 🛠 ADD THIS
       if (!action) return;
+      if (matchData?.status === 'fullTime') return;
       switch (action.type) {
         case 'timerUpdate':
           setElapsedTime(action.elapsedTime);
@@ -53,6 +53,7 @@ const FanMatchPage = () => {
             } else {
               setGamePhase(statusToPhase(action.status, elapsedTime));
             }
+            setMatchData(prev => ({ ...prev, status: action.status }));
             break;
         case 'goal':
         case 'point':

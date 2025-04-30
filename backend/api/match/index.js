@@ -434,31 +434,28 @@ router.post('/:id/event', authenticateToken, checkRole('manager', 'coach', 'admi
             match.playerContributions.set(player._id.toString(), contribution);
 
             // Global Player Stats
-            let playerStats = await Statistics.findOne({ player: playerId });
-
-            if (!playerStats) {
-                playerStats = new Statistics({
-                    player: playerId,
-                    team: match.team,
-                    goals: 0,
-                    points: 0,
-                    minutes_played: 0,
-                    ratings: 0,
-                    yellowCards: 0,
-                    redCards: 0
-                });
+            const stat = await Statistics.findOneAndUpdate(
+              { player: playerId, team: match.team },
+              {
+                $inc: {
+                  goals:        type === 'goal'        ? 1 : 0,
+                  points:       type === 'point'       ? 1 : 0,
+                  yellowCards:  type === 'yellowCard'  ? 1 : 0,
+                  redCards:     type === 'redCard'     ? 1 : 0,
+                }
+              },
+              { new: true, upsert: true, setDefaultsOnInsert: true }
+            );
+            
+            // ensure player's statistics array includes this stat and force stats to array
+            if (!Array.isArray(player.statistics)) {
+              player.statistics = player.statistics
+                ? [ player.statistics ]
+                : [];
             }
-
-            if (type === 'goal') playerStats.goals += 1;
-            if (type === 'point') playerStats.points += 1;
-            if (type === 'yellowCard') playerStats.yellowCards += 1;
-            if (type === 'redCard') playerStats.redCards += 1;
-
-            await playerStats.save();
-
-            if (!player.statistics) {
-                player.statistics = playerStats._id;
-                await player.save();
+            if (!player.statistics.includes(stat._id)) {
+              player.statistics.push(stat._id);
+              await player.save();
             }
         }
 

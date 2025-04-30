@@ -103,14 +103,23 @@ const CreateTeam = () => {
             }
 
           setPositions(resolvedPositions);
-          if (startingBench.length > 0) {
-            const benchPlayers = teamPlayers.filter(p => startingBench.some(b => b._id === p._id || b === p._id));
-            setAvailablePlayers(benchPlayers);
-          } else {
-            const assignedIds = Object.values(startingPositions).filter(Boolean);
-            const filtered = teamPlayers.filter(p => p && !assignedIds.includes(p._id));
-            setAvailablePlayers(filtered);
-          }
+          const assignedIds = new Set([
+            ...Object.values(startingPositions)
+              .map(p => (typeof p === 'object' ? p._id : p))
+              .filter(Boolean),
+            ...startingBench
+              .map(p => (typeof p === 'object' ? p._id : p))
+              .filter(Boolean),
+          ]);
+          
+          const resolvedBench = teamPlayers.filter(p =>
+            startingBench.some(b => (typeof b === 'object' ? b._id : b) === p._id)
+          );
+          
+          const unassigned = teamPlayers.filter(p => !assignedIds.has(p._id));
+          
+          setAvailablePlayers([...resolvedBench, ...unassigned]);
+          
         } else {
           setAvailablePlayers(teamPlayers);
         }
